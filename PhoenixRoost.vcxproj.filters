@@ -18,9 +18,15 @@
     <ClCompile Include="PhoenixRoost.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Editor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Editor.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

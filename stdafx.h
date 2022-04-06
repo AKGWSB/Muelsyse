@@ -15,6 +15,9 @@
 #include <string>
 #include <vector>
 
+// config it in visual studio's pannel
+/*
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
+*/
