@@ -2,12 +2,12 @@
 
 #include "stdafx.h"
 
-class Editor;
+class Engine;
 
 class Win32App
 {
 public:
-	static int Run(Editor* pEditor, HINSTANCE hInstance, int nCmdShow);
+	static int Run(Engine* pEngine, HINSTANCE hInstance, int nCmdShow);
 	static HWND GetHwnd() { return m_hwnd; }
 
 	static int m_width;

@@ -1,11 +1,11 @@
 #include "Win32App.h"
 
-int Win32App::m_width = 800;
-int Win32App::m_height = 600;
+int Win32App::m_width = 512;
+int Win32App::m_height = 512;
 std::wstring Win32App::m_title = L"PhoenixRoost Editor";
 HWND Win32App::m_hwnd = nullptr;
 
-int Win32App::Run(Editor* pEditor, HINSTANCE hInstance, int nCmdShow)
+int Win32App::Run(Engine* pEngine, HINSTANCE hInstance, int nCmdShow)
 {
     // Initialize the window class.
     WNDCLASSEX windowClass = { 0 };
@@ -32,10 +32,10 @@ int Win32App::Run(Editor* pEditor, HINSTANCE hInstance, int nCmdShow)
         nullptr,        // We have no parent window.
         nullptr,        // We aren't using menus.
         hInstance,
-        pEditor);
+        pEngine);
 
     // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
-    pEditor->OnInit();
+    pEngine->OnInit();
 
     ShowWindow(m_hwnd, nCmdShow);
 
@@ -51,7 +51,7 @@ int Win32App::Run(Editor* pEditor, HINSTANCE hInstance, int nCmdShow)
         }
     }
 
-    pEditor->OnDestroy();
+    pEngine->OnDestroy();
 
     // Return this part of the WM_QUIT message to Windows.
     return static_cast<char>(msg.wParam);
@@ -60,7 +60,7 @@ int Win32App::Run(Editor* pEditor, HINSTANCE hInstance, int nCmdShow)
 // Main message handler for the sample.
 LRESULT CALLBACK Win32App::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    Editor* pSample = reinterpret_cast<Editor*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    Engine* pEngine = reinterpret_cast<Engine*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)
     {
@@ -73,10 +73,10 @@ LRESULT CALLBACK Win32App::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LP
     return 0;
 
     case WM_PAINT:
-        if (pSample)
+        if (pEngine)
         {
-            pSample->OnUpdate();
-            pSample->OnRender();
+            pEngine->OnUpdate();
+            pEngine->OnRender();
         }
         return 0;
 

@@ -23,6 +23,7 @@
 #include "Win32App.h"
 
 #include "Editor/Editor.h"
+#include "Engine.h"
 
 // config it in visual studio's pannel
 /*

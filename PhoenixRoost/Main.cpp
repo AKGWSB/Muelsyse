@@ -3,6 +3,6 @@
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    Editor editor;
-    return Win32App::Run(&editor, hInstance, nCmdShow);
+    Engine e;
+    return Win32App::Run(&e, hInstance, nCmdShow);
 }

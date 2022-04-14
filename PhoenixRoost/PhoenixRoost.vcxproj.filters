@@ -18,10 +18,10 @@
     <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\Editor.cpp">
+    <ClCompile Include="Win32App.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Win32App.cpp">
+    <ClCompile Include="Engine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,13 +29,19 @@
     <ClInclude Include="stdafx.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\Editor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DirectXHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Win32App.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FrameResource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderTexture.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
