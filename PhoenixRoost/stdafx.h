@@ -24,6 +24,7 @@
 
 #include "Editor/Editor.h"
 #include "Engine.h"
+#include "Resource/Shader.h"
 
 // config it in visual studio's pannel
 /*
