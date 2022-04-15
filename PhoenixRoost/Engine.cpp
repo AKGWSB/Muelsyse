@@ -96,8 +96,9 @@ void Engine::OnInit()
 
 
     // Create descriptor heaps.
-    m_rtvHeap = new DescriptorHeap(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    
+    m_rtvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+     //= std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+     //= std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
     // Create frame resources.
     {
@@ -184,29 +185,79 @@ void Engine::OnInit()
 
         const UINT vertexBufferSize = sizeof(triangleVertices);
 
-        // Note: using upload heaps to transfer static data like vert buffers is not 
-        // recommended. Every time the GPU needs it, the upload heap will be marshalled 
-        // over. Please read up on Default Heap usage. An upload heap is used here for 
-        // code simplicity and because there are very few verts to actually transfer.
-        auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+        // create default heap
+        auto dheapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferSize = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
         ThrowIfFailed(m_device->CreateCommittedResource(
-            &heapProperties,
+            &dheapProperties,               // a default heap
+            D3D12_HEAP_FLAG_NONE,           // no flags
+            &bufferSize,                    // resource description for a buffer
+            D3D12_RESOURCE_STATE_COPY_DEST, // start in the copy destination state
+            nullptr,
+            IID_PPV_ARGS(&m_defaultBuffer)));
+
+        // create upload heap
+        auto uheapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        ThrowIfFailed(m_device->CreateCommittedResource(
+            &uheapProperties,
             D3D12_HEAP_FLAG_NONE,
-            &bufferDesc,
+            &bufferSize,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
-            IID_PPV_ARGS(&m_vertexBuffer)));
+            IID_PPV_ARGS(&m_uploadBuffer)));
 
-        // Copy the triangle data to the vertex buffer.
+        // create temp 
+        ComPtr<ID3D12CommandAllocator> tempCommandAllocator;
+        ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tempCommandAllocator)));
+
+        ComPtr<ID3D12GraphicsCommandList> tempCommandList;
+        ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, tempCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&tempCommandList)));
+        
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue> tempCommandQueue;
+        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        queueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        queueDesc.NodeMask = 0;
+        ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempCommandQueue)));
+
+
+        // send data to upload buffer
         UINT8* pVertexDataBegin;
         CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-        ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-        memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-        m_vertexBuffer->Unmap(0, nullptr);
+        ThrowIfFailed(m_uploadBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+        memcpy(pVertexDataBegin, triangleVertices, vertexBufferSize);
+        m_uploadBuffer->Unmap(0, nullptr); 
+
+        // copy from upload buffer to default buffer
+        tempCommandList->CopyBufferRegion(m_defaultBuffer.Get(), 0, m_uploadBuffer.Get(), 0, vertexBufferSize);
+
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_defaultBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        tempCommandList->ResourceBarrier(1, &barrier);
+        
+        // exe cmd
+        tempCommandList->Close();
+        std::vector<ID3D12CommandList*> ppCommandLists{ tempCommandList.Get() };
+        tempCommandQueue->ExecuteCommandLists(static_cast<UINT>(ppCommandLists.size()), ppCommandLists.data());
+
+        // set fence
+        UINT64 initialValue{ 0 };
+        ComPtr<ID3D12Fence> tempFence;
+        ThrowIfFailed(m_device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)));
+
+        HANDLE tempFenceEvent{ CreateEvent(nullptr, FALSE, FALSE, nullptr) };
+        if (tempFenceEvent == NULL)
+        {
+            throw("Error creating a fence event.");
+        }
+
+        // wait for gpu
+        ThrowIfFailed(tempCommandQueue->Signal(tempFence.Get(), 1));
+        ThrowIfFailed(tempFence->SetEventOnCompletion(1, tempFenceEvent));
+        WaitForSingleObjectEx(tempFenceEvent, INFINITE, FALSE);
 
         // Initialize the vertex buffer view.
-        m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+        m_vertexBufferView.BufferLocation = m_defaultBuffer->GetGPUVirtualAddress();
         m_vertexBufferView.StrideInBytes = sizeof(Vertex);
         m_vertexBufferView.SizeInBytes = vertexBufferSize;
     }

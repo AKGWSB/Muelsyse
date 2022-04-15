@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../stdafx.h"
-#include <vector>
+#include "../DX12/d3dx12.h"
+#include "../DX12/DirectXHelper.h"
 
 class DescriptorHeap
 {

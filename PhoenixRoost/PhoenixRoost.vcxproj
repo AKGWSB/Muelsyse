@@ -33,7 +33,6 @@
     <ClInclude Include="Rendering\FrameResource.h" />
     <ClInclude Include="Rendering\RenderTexture.h" />
     <ClInclude Include="Resource\Shader.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="Win32App.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

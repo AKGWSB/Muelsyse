@@ -1,11 +1,19 @@
 #pragma once
 
-#include "stdafx.h"
+#include "Win32App.h"
+
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <D3Dcompiler.h>
+#include <DirectXMath.h>
+
+#include "DX12/d3dx12.h"
+#include "DX12/DirectXHelper.h"
+
+#include "DX12/DescriptorHeap.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
-
-class DescriptorHeap;
 
 class Engine
 {
@@ -19,10 +27,11 @@ public:
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
 
 	// desc
-	DescriptorHeap* m_rtvHeap;
+	std::shared_ptr<DescriptorHeap> m_rtvHeap;
 
 	// App resources.
-	ComPtr<ID3D12Resource> m_vertexBuffer;
+	ComPtr<ID3D12Resource> m_uploadBuffer;
+	ComPtr<ID3D12Resource> m_defaultBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 
 	ComPtr<ID3D12GraphicsCommandList> m_commandList;
