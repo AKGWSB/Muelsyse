@@ -5,7 +5,7 @@ Engine::Engine()
     m_frameIndex = 0;
     m_viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(Win32App::m_width), static_cast<float>(Win32App::m_height));
     m_scissorRect = CD3DX12_RECT(0, 0, static_cast<LONG>(Win32App::m_width), static_cast<LONG>(Win32App::m_height));
-    m_rtvDescriptorSize = 0;
+    //m_rtvDescriptorSize = 0;
 }
 
 Engine::~Engine()
@@ -96,27 +96,21 @@ void Engine::OnInit()
 
 
     // Create descriptor heaps.
-    {
-        // Describe and create a render target view (RTV) descriptor heap.
-        D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-        rtvHeapDesc.NumDescriptors = m_rtvHeapSize;
-        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-
-        m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    }
+    m_rtvHeap = new DescriptorHeap(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    
 
     // Create frame resources.
     {
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
         // Create a RTV and a command allocator for each frame.
         for (UINT i = 0; i < FrameCount; i++)
         {
+            UINT id;
+
+            // alloc a descriptor
+            m_rtvHeap->AllocDescriptor(m_rtvHandles[i], id);
+
             ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
-            m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
-            rtvHandle.Offset(1, m_rtvDescriptorSize);   // pointer ++
+            m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, m_rtvHandles[i]);
 
             ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocators[i])));
         }
@@ -265,7 +259,8 @@ void Engine::OnRender()
     auto barrierRT = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     m_commandList->ResourceBarrier(1, &barrierRT);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+    //CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHandles[m_frameIndex];
     m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
     // Record commands.

@@ -27,12 +27,12 @@
     <ClCompile Include="Resource\Shader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DX12\DescriptorHeap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectXHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Win32App.h">
@@ -48,6 +48,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Resource\Shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12\DescriptorHeap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12\d3dx12.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12\DirectXHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,13 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DX12\DescriptorHeap.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Resource\Shader.cpp" />
     <ClCompile Include="Win32App.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectXHelper.h" />
+    <ClInclude Include="DX12\d3dx12.h" />
+    <ClInclude Include="DX12\DescriptorHeap.h" />
+    <ClInclude Include="DX12\DirectXHelper.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Rendering\FrameResource.h" />
     <ClInclude Include="Rendering\RenderTexture.h" />

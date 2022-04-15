@@ -5,6 +5,8 @@
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
+class DescriptorHeap;
+
 class Engine
 {
 public:
@@ -16,10 +18,8 @@ public:
 	ComPtr<ID3D12Device> m_device;
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
 
-	// resources
-	ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-	static const UINT m_rtvHeapSize = 64;
-	UINT m_rtvDescriptorSize;
+	// desc
+	DescriptorHeap* m_rtvHeap;
 
 	// App resources.
 	ComPtr<ID3D12Resource> m_vertexBuffer;
@@ -39,6 +39,7 @@ public:
 	HANDLE m_fenceEvent;
 	ComPtr<ID3D12Fence> m_fence;
 	UINT64 m_fenceValues[FrameCount];
+	CD3DX12_CPU_DESCRIPTOR_HANDLE m_rtvHandles[FrameCount];
 
 	Engine();
 	~Engine();

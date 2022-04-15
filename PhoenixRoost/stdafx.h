@@ -10,21 +10,18 @@
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
-#include "d3dx12.h"
-#include "DirectXHelper.h"
+#include "DX12/d3dx12.h"
+#include "DX12/DirectXHelper.h"
 
 #include <wrl.h>
 #include <shellapi.h>
-
-#include <algorithm>
-#include <string>
-#include <vector>
 
 #include "Win32App.h"
 
 #include "Editor/Editor.h"
 #include "Engine.h"
 #include "Resource/Shader.h"
+#include "DX12/DescriptorHeap.h"
 
 // config it in visual studio's pannel
 /*
