@@ -22,7 +22,9 @@
     <ClCompile Include="DX12\DescriptorHeap.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Resource\DefaultBuffer.cpp" />
     <ClCompile Include="Resource\Shader.cpp" />
+    <ClCompile Include="Resource\VertexBuffer.cpp" />
     <ClCompile Include="Win32App.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -32,7 +34,10 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Rendering\FrameResource.h" />
     <ClInclude Include="Rendering\RenderTexture.h" />
+    <ClInclude Include="Resource\Buffer.h" />
+    <ClInclude Include="Resource\DefaultBuffer.h" />
     <ClInclude Include="Resource\Shader.h" />
+    <ClInclude Include="Resource\VertexBuffer.h" />
     <ClInclude Include="Win32App.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

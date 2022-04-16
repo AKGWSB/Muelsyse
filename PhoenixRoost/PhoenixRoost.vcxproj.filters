@@ -30,6 +30,12 @@
     <ClCompile Include="DX12\DescriptorHeap.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Resource\DefaultBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\VertexBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Win32App.h">
@@ -54,6 +60,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DX12\DirectXHelper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Buffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\DefaultBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\VertexBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

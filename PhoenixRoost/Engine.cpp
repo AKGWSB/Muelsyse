@@ -167,22 +167,34 @@ void Engine::OnInit()
     // to record yet. The main loop expects it to be closed, so close it now.
     ThrowIfFailed(m_commandList->Close());
 
-    struct Vertex
-    {
-        XMFLOAT3 position;
-        XMFLOAT4 color;
-    };
-
+   
     // Create the vertex buffer.
     {
+        struct Vertex
+        {
+            XMFLOAT3 position;
+            XMFLOAT4 color;
+        };
+
         // Define the geometry for a triangle.
-        Vertex triangleVertices[] =
+        std::vector<Vertex> triangleVertices =
         {
             { { 0.0f, 0.325f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
             { { 0.325f, -0.325f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
             { { -0.325f, -0.325f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
 
+        UINT elementSize = sizeof(Vertex);
+        UINT bufferSize = triangleVertices.size() * elementSize;
+
+        m_vertexBuffer = std::make_shared<DefaultBuffer>(m_device, L"vertBuffer");
+        m_vertexBuffer->UploadData(triangleVertices.data(), bufferSize);
+
+        m_bufferView.BufferLocation = m_vertexBuffer->buffer->GetGPUVirtualAddress();
+        m_bufferView.StrideInBytes = elementSize;
+        m_bufferView.SizeInBytes = bufferSize;
+
+        /*
         const UINT vertexBufferSize = sizeof(triangleVertices);
 
         // create default heap
@@ -260,6 +272,7 @@ void Engine::OnInit()
         m_vertexBufferView.BufferLocation = m_defaultBuffer->GetGPUVirtualAddress();
         m_vertexBufferView.StrideInBytes = sizeof(Vertex);
         m_vertexBufferView.SizeInBytes = vertexBufferSize;
+        */
     }
 
 
@@ -318,7 +331,7 @@ void Engine::OnRender()
     const float clearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
     m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
     m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+    m_commandList->IASetVertexBuffers(0, 1, &m_bufferView);
     m_commandList->DrawInstanced(3, 1, 0, 0);
 
     // Indicate that the back buffer will now be used to present.
