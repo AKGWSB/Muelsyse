@@ -12,6 +12,7 @@
 
 #include "DX12/DescriptorHeap.h"
 #include "Resource/VertexBuffer.h"
+#include "Resource/IndexBuffer.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -29,8 +30,8 @@ public:
 
 	// desc
 	std::shared_ptr<DescriptorHeap> m_rtvHeap;
-	std::shared_ptr<DefaultBuffer> m_vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_bufferView;
+	std::shared_ptr<VertexBuffer> m_vertexBuffer;
+	std::shared_ptr<IndexBuffer> m_indexBuffer;
 
 	// App resources.
 	ComPtr<ID3D12Resource> m_uploadBuffer;

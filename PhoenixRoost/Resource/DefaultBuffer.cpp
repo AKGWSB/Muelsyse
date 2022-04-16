@@ -8,10 +8,11 @@ DefaultBuffer::DefaultBuffer(ComPtr<ID3D12Device> dv, std::wstring bn)
 
 DefaultBuffer::~DefaultBuffer()
 {
-
+    // We should release the memory we allocated for our buffer on the GPU
+    SAFE_RELEASE(buffer.Get());
 }
 
-void DefaultBuffer::UploadData(void* data, UINT size)
+void DefaultBuffer::UploadData(const void* data, UINT size)
 {
     bufferSize = size;
 

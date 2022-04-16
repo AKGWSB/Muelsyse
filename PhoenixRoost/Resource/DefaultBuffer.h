@@ -19,5 +19,5 @@ public:
 	DefaultBuffer(ComPtr<ID3D12Device> device, std::wstring bufferName = L"buffer");
 	~DefaultBuffer();
 
-	void UploadData(void* data, UINT size);
+	void UploadData(const void* data, UINT size);
 };

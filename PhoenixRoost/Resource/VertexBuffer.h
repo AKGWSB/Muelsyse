@@ -16,9 +16,29 @@ public:
 	UINT elementSize;
 	D3D12_VERTEX_BUFFER_VIEW bufferView;
 
-	VertexBuffer(ComPtr<ID3D12Device> device, std::wstring bufferName = L"buffer");
-	~VertexBuffer();
+	VertexBuffer(ComPtr<ID3D12Device> device, std::wstring bufferName = L"buffer") :
+		DefaultBuffer(device, bufferName)
+	{
+
+	}
+
+	~VertexBuffer()
+	{
+
+	}
 
 	template<typename T>
-	void UploadVertexData(const std::vector<T>& data);
+	void UploadVertexData(const std::vector<T>& data)
+	{
+		elementSize = static_cast<UINT>(sizeof(T));
+		bufferSize = static_cast<UINT>(data.size() * elementSize);
+
+		// send data
+		DefaultBuffer::UploadData(data.data(), bufferSize);
+
+		// set buffer view
+		bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
+		bufferView.StrideInBytes = elementSize;
+		bufferView.SizeInBytes = bufferSize;
+	}
 };

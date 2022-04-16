@@ -18,7 +18,8 @@ void VertexBuffer::UploadVertexData(const std::vector<T>& data)
 	bufferSize = static_cast<UINT>(data.size() * elementSize);
 
 	// send data
-	UploadData(data.data(), bufferSize);
+	void* pData = data.data();
+	DefaultBuffer::UploadData(pData, bufferSize);
 
 	// set buffer view
 	bufferView.BufferLocation = buffer->GetGPUVirtualAddress();

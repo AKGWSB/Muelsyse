@@ -179,100 +179,23 @@ void Engine::OnInit()
         // Define the geometry for a triangle.
         std::vector<Vertex> triangleVertices =
         {
-            { { 0.0f, 0.325f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { { 0.325f, -0.325f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-            { { -0.325f, -0.325f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+            { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+            { {  0.5f,  0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f } }
         };
 
-        UINT elementSize = sizeof(Vertex);
-        UINT bufferSize = triangleVertices.size() * elementSize;
-
-        m_vertexBuffer = std::make_shared<DefaultBuffer>(m_device, L"vertBuffer");
-        m_vertexBuffer->UploadData(triangleVertices.data(), bufferSize);
-
-        m_bufferView.BufferLocation = m_vertexBuffer->buffer->GetGPUVirtualAddress();
-        m_bufferView.StrideInBytes = elementSize;
-        m_bufferView.SizeInBytes = bufferSize;
-
-        /*
-        const UINT vertexBufferSize = sizeof(triangleVertices);
-
-        // create default heap
-        auto dheapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-        auto bufferSize = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-        ThrowIfFailed(m_device->CreateCommittedResource(
-            &dheapProperties,               // a default heap
-            D3D12_HEAP_FLAG_NONE,           // no flags
-            &bufferSize,                    // resource description for a buffer
-            D3D12_RESOURCE_STATE_COPY_DEST, // start in the copy destination state
-            nullptr,
-            IID_PPV_ARGS(&m_defaultBuffer)));
-
-        // create upload heap
-        auto uheapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        ThrowIfFailed(m_device->CreateCommittedResource(
-            &uheapProperties,
-            D3D12_HEAP_FLAG_NONE,
-            &bufferSize,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&m_uploadBuffer)));
-
-        // create temp 
-        ComPtr<ID3D12CommandAllocator> tempCommandAllocator;
-        ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tempCommandAllocator)));
-
-        ComPtr<ID3D12GraphicsCommandList> tempCommandList;
-        ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, tempCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&tempCommandList)));
-        
-        Microsoft::WRL::ComPtr<ID3D12CommandQueue> tempCommandQueue;
-        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-        queueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        queueDesc.NodeMask = 0;
-        ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempCommandQueue)));
-
-
-        // send data to upload buffer
-        UINT8* pVertexDataBegin;
-        CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-        ThrowIfFailed(m_uploadBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-        memcpy(pVertexDataBegin, triangleVertices, vertexBufferSize);
-        m_uploadBuffer->Unmap(0, nullptr); 
-
-        // copy from upload buffer to default buffer
-        tempCommandList->CopyBufferRegion(m_defaultBuffer.Get(), 0, m_uploadBuffer.Get(), 0, vertexBufferSize);
-
-        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_defaultBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        tempCommandList->ResourceBarrier(1, &barrier);
-        
-        // exe cmd
-        tempCommandList->Close();
-        std::vector<ID3D12CommandList*> ppCommandLists{ tempCommandList.Get() };
-        tempCommandQueue->ExecuteCommandLists(static_cast<UINT>(ppCommandLists.size()), ppCommandLists.data());
-
-        // set fence
-        UINT64 initialValue{ 0 };
-        ComPtr<ID3D12Fence> tempFence;
-        ThrowIfFailed(m_device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)));
-
-        HANDLE tempFenceEvent{ CreateEvent(nullptr, FALSE, FALSE, nullptr) };
-        if (tempFenceEvent == NULL)
+        std::vector<UINT> triangleIndices =
         {
-            throw("Error creating a fence event.");
-        }
+            0, 1, 2,
+            0, 3, 1
+        };
 
-        // wait for gpu
-        ThrowIfFailed(tempCommandQueue->Signal(tempFence.Get(), 1));
-        ThrowIfFailed(tempFence->SetEventOnCompletion(1, tempFenceEvent));
-        WaitForSingleObjectEx(tempFenceEvent, INFINITE, FALSE);
+        m_vertexBuffer = std::make_shared<VertexBuffer>(m_device, L"vertBuffer");
+        m_vertexBuffer->UploadVertexData(triangleVertices);
 
-        // Initialize the vertex buffer view.
-        m_vertexBufferView.BufferLocation = m_defaultBuffer->GetGPUVirtualAddress();
-        m_vertexBufferView.StrideInBytes = sizeof(Vertex);
-        m_vertexBufferView.SizeInBytes = vertexBufferSize;
-        */
+        m_indexBuffer = std::make_shared<IndexBuffer>(m_device, L"idxBuffer");
+        m_indexBuffer->UploadIndexData(triangleIndices);
     }
 
 
@@ -331,8 +254,9 @@ void Engine::OnRender()
     const float clearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
     m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
     m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_commandList->IASetVertexBuffers(0, 1, &m_bufferView);
-    m_commandList->DrawInstanced(3, 1, 0, 0);
+    m_commandList->IASetVertexBuffers(0, 1, &m_vertexBuffer->bufferView);
+    m_commandList->IASetIndexBuffer(&m_indexBuffer->bufferView);
+    m_commandList->DrawIndexedInstanced(m_indexBuffer->indexCount, 1, 0, 0, 0);
 
     // Indicate that the back buffer will now be used to present.
     auto barrierPr = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
