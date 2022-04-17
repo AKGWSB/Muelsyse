@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initguid.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
@@ -17,7 +18,7 @@ public:
 	UINT indexCount;
 	D3D12_INDEX_BUFFER_VIEW bufferView;
 
-	IndexBuffer(ComPtr<ID3D12Device> device, std::wstring bufferName = L"buffer") :
+	IndexBuffer(ID3D12Device* device, std::wstring bufferName = L"buffer") :
 		DefaultBuffer(device, bufferName)
 	{
 

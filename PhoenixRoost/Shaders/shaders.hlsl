@@ -33,23 +33,55 @@ float4 PSMain(v2f i) : SV_TARGET
 */
 
 // ----------------
+
+/*
+Texture2D g_texture : register(t0);
+SamplerState g_sampler : register(s0);
+
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
+    float2 texcoord : TEXCOORD;
 };
 
-PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
+PSInput VSMain(float4 position : POSITION, float4 texcoord : TEXCOORD)
 {
     PSInput result;
 
     result.position = position;
-    result.color = color;
+    result.texcoord = texcoord;
 
     return result;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return input.color;
+    return input.texcoord;
+    //return g_texture.Sample(g_sampler, texcoord);
+    //return float4(texcoord.x, texcoord.y, 0, 1);
+}*/
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
+};
+
+Texture2D g_texture : register(t0);
+SamplerState g_sampler : register(s0);
+
+PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
+{
+    PSInput result;
+
+    result.position = position;
+    result.uv = uv;
+
+    return result;
+}
+
+float4 PSMain(PSInput input) : SV_TARGET
+{
+    //return float4(input.uv.x, input.uv.y, 0, 1);
+    return g_texture.Sample(g_sampler, input.uv);
 }

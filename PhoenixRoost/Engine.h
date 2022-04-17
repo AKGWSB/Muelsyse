@@ -2,6 +2,7 @@
 
 #include "Win32App.h"
 
+#include <initguid.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
@@ -13,6 +14,7 @@
 #include "DX12/DescriptorHeap.h"
 #include "Resource/VertexBuffer.h"
 #include "Resource/IndexBuffer.h"
+#include "Resource/Texture2D.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -30,12 +32,13 @@ public:
 
 	// desc
 	std::shared_ptr<DescriptorHeap> m_rtvHeap;
+	std::shared_ptr<DescriptorHeap> m_srvHeap;
+	std::shared_ptr<DescriptorHeap> m_samplerHeap;
+
+	// App 
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
 	std::shared_ptr<IndexBuffer> m_indexBuffer;
-
-	// App resources.
-	ComPtr<ID3D12Resource> m_uploadBuffer;
-	ComPtr<ID3D12Resource> m_defaultBuffer;
+	std::shared_ptr<Texture2D> m_texture2D;
 
 	ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	ComPtr<ID3D12RootSignature> m_rootSignature;

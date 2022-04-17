@@ -96,19 +96,19 @@ void Engine::OnInit()
 
 
     // Create descriptor heaps.
-    m_rtvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-     //= std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-     //= std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+    m_rtvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+    m_srvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+    m_samplerHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+
 
     // Create frame resources.
     {
         // Create a RTV and a command allocator for each frame.
         for (UINT i = 0; i < FrameCount; i++)
         {
-            UINT id;
-
             // alloc a descriptor
-            m_rtvHeap->AllocDescriptor(m_rtvHandles[i], id);
+            UINT id = m_rtvHeap->AllocDescriptor(); // index in heap
+            m_rtvHandles[i] = m_rtvHeap->GetCpuHandle(id);
 
             ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
             m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, m_rtvHandles[i]);
@@ -119,17 +119,75 @@ void Engine::OnInit()
 
 
 
-
-    // Create an empty root signature.
+    // Create root signature.
     {
+        D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+
+        // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+        if (FAILED(m_device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+        {
+            featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+        }
+
+
+        /*
+        // 2D table to hold different types of descriptor
+        CD3DX12_DESCRIPTOR_RANGE ranges[1];
+        ranges[0].Init(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+            1,  // Number of descriptors in table
+            0); // bind to register t0
+        
+        // Root parameter can be a table, root descriptor or root constants.
+        
+        CD3DX12_ROOT_PARAMETER rootParameters[1];
+        rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);*/
+
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+
+        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+
+        // sampler
+        D3D12_STATIC_SAMPLER_DESC sampler = {};
+        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        sampler.MipLODBias = 0;
+        sampler.MaxAnisotropy = 0;
+        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        sampler.MinLOD = 0.0f;
+        sampler.MaxLOD = D3D12_FLOAT32_MAX;
+        sampler.ShaderRegister = 0;
+        sampler.RegisterSpace = 0;
+        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        
+        /*
+        // A root signature is an array of root parameters.
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        rootSignatureDesc.Init(1, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
         ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
         ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+        */
+
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
+        ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
     }
+
+
 
     // Create the pipeline state, which includes compiling and loading shaders.
     {
@@ -139,7 +197,7 @@ void Engine::OnInit()
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
         {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
         // Describe and create the graphics pipeline state object (PSO).
@@ -160,6 +218,8 @@ void Engine::OnInit()
         ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
     }
 
+
+
     // Create the command list.
     ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocators[m_frameIndex].Get(), NULL, IID_PPV_ARGS(&m_commandList)));
 
@@ -167,22 +227,23 @@ void Engine::OnInit()
     // to record yet. The main loop expects it to be closed, so close it now.
     ThrowIfFailed(m_commandList->Close());
 
+
    
     // Create the vertex buffer.
     {
         struct Vertex
         {
             XMFLOAT3 position;
-            XMFLOAT4 color;
+            XMFLOAT2 texcoord;
         };
 
         // Define the geometry for a triangle.
         std::vector<Vertex> triangleVertices =
         {
-            { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-            { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-            { {  0.5f,  0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f } }
+            { { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f} },
+            { {  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f} },
+            { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f} },
+            { {  0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f} }
         };
 
         std::vector<UINT> triangleIndices =
@@ -191,13 +252,16 @@ void Engine::OnInit()
             0, 3, 1
         };
 
-        m_vertexBuffer = std::make_shared<VertexBuffer>(m_device, L"vertBuffer");
+        m_vertexBuffer = std::make_shared<VertexBuffer>(m_device.Get(), L"vertBuffer");
         m_vertexBuffer->UploadVertexData(triangleVertices);
 
-        m_indexBuffer = std::make_shared<IndexBuffer>(m_device, L"idxBuffer");
+        m_indexBuffer = std::make_shared<IndexBuffer>(m_device.Get(), L"idxBuffer");
         m_indexBuffer->UploadIndexData(triangleIndices);
     }
 
+
+    // create tex
+    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_srvHeap.get(), "D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png");
 
 
 
@@ -237,18 +301,31 @@ void Engine::OnRender()
     // re-recording.
     ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), m_pipelineState.Get()));
 
+
+
     // Set necessary state.
     m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    // set the descriptor heap
+    ID3D12DescriptorHeap* ppHeaps[] = { m_srvHeap->heap.Get() };
+    m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+    
+    // set srv descriptor table, 0 is for index in root parameter table
+    m_commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->heap->GetGPUDescriptorHandleForHeapStart());
+
     m_commandList->RSSetViewports(1, &m_viewport);
     m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
+
 
     // Indicate that the back buffer will be used as a render target.
     auto barrierRT = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     m_commandList->ResourceBarrier(1, &barrierRT);
 
-    //CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHandles[m_frameIndex];
     m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+
 
     // Record commands.
     const float clearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -258,12 +335,13 @@ void Engine::OnRender()
     m_commandList->IASetIndexBuffer(&m_indexBuffer->bufferView);
     m_commandList->DrawIndexedInstanced(m_indexBuffer->indexCount, 1, 0, 0, 0);
 
+
+
     // Indicate that the back buffer will now be used to present.
     auto barrierPr = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     m_commandList->ResourceBarrier(1, &barrierPr);
 
     ThrowIfFailed(m_commandList->Close());
-
 
 
 

@@ -1,46 +1,60 @@
-#include "DefaultBuffer.h"
+#include "Texture2D.h"
 
-DefaultBuffer::DefaultBuffer(ID3D12Device* dv, std::wstring bn)
+#define STB_IMAGE_IMPLEMENTATION
+#include "../3rdparty/stb_image.h"
+
+Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::string texturePath)
 {
-	device = dv;
-    bufferName = bn;
-}
+    srvHeap = g_srvHeap;
 
-DefaultBuffer::~DefaultBuffer()
-{
-    // We should release the memory we allocated for our buffer on the GPU
-    SAFE_RELEASE(buffer.Get());
-}
+	// load data as rgba format (4 channels)
+    int nChannels;
+	unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nChannels, 4);
+	UINT bufferSize = width * height * 4;
 
-void DefaultBuffer::UploadData(const void* data, UINT size)
-{
-    bufferSize = size;
 
-    // create default heap
+
+    // alloc a srv descriptor from srv heap
+    srvHandleIndex = srvHeap->AllocDescriptor();
+    srvCpuHandle = srvHeap->GetCpuHandle(srvHandleIndex);
+    srvGpuHandle = srvHeap->GetGpuHandle(srvHandleIndex);
+
+
+
+    // Describe and create a Texture2D.
+    D3D12_RESOURCE_DESC textureDesc = {};
+    textureDesc.MipLevels = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Width = width;
+    textureDesc.Height = height;
+    textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    textureDesc.DepthOrArraySize = 1;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+    // Create the GPU default buffer.
     auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
     ThrowIfFailed(device->CreateCommittedResource(
-        &heapProperties,                // a default heap
-        D3D12_HEAP_FLAG_NONE,           // no flags
-        &resourceDesc,                  // resource description for a buffer
-        D3D12_RESOURCE_STATE_COPY_DEST, // start in the copy destination state
+        &heapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &textureDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr,
         IID_PPV_ARGS(&buffer)));
-    buffer->SetName(bufferName.c_str());
 
-
-    // create upload heap
+    // Create the GPU upload buffer.
     ComPtr<ID3D12Resource> uploadBuffer;
-
-    auto uHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    auto uheapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     auto uResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
     ThrowIfFailed(device->CreateCommittedResource(
-        &uHeapProperties,
+        &uheapProperties,
         D3D12_HEAP_FLAG_NONE,
         &uResourceDesc,
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&uploadBuffer)));
+
 
 
     // create temp alloctor, list and queue for copy command
@@ -57,20 +71,10 @@ void DefaultBuffer::UploadData(const void* data, UINT size)
     ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tempCommandAllocator)));
     ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, tempCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&tempCommandList)));
     ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempCommandQueue)));
-    
-    /*
-    // send data to upload buffer
-    UINT8* pVertexDataBegin;
-    CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-    ThrowIfFailed(uploadBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-    memcpy(pVertexDataBegin, data, bufferSize);
-    uploadBuffer->Unmap(0, nullptr);
 
-    // copy from upload buffer to default buffer
-    tempCommandList->CopyBufferRegion(buffer.Get(), 0, uploadBuffer.Get(), 0, bufferSize);
-    */
 
-    // store vertex buffer in upload heap
+
+    // store buffer in upload heap
     D3D12_SUBRESOURCE_DATA subData = {};
     subData.pData = data;                 // pointer to our index array
     subData.RowPitch = bufferSize;        // size of all our index buffer
@@ -78,9 +82,20 @@ void DefaultBuffer::UploadData(const void* data, UINT size)
 
     UpdateSubresources(tempCommandList.Get(), buffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subData);
 
-    // change buffer state
-    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     tempCommandList->ResourceBarrier(1, &barrier);
+
+
+
+    // Describe and create a SRV for the texture.
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = textureDesc.Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+    device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvCpuHandle);
+    //device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvHeap->heap->GetCPUDescriptorHandleForHeapStart());
+
 
     // exe cmd
     tempCommandList->Close();
@@ -102,4 +117,13 @@ void DefaultBuffer::UploadData(const void* data, UINT size)
     ThrowIfFailed(tempCommandQueue->Signal(tempFence.Get(), 1));
     ThrowIfFailed(tempFence->SetEventOnCompletion(1, tempFenceEvent));
     WaitForSingleObjectEx(tempFenceEvent, INFINITE, FALSE);
+}
+
+Texture2D::~Texture2D()
+{
+    // We should release the memory we allocated for our buffer on the GPU
+    SAFE_RELEASE(buffer.Get());
+
+    // release descriptor
+    srvHeap->FreeDescriptor(srvHandleIndex);
 }

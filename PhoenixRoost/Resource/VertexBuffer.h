@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initguid.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
@@ -16,7 +17,7 @@ public:
 	UINT elementSize;
 	D3D12_VERTEX_BUFFER_VIEW bufferView;
 
-	VertexBuffer(ComPtr<ID3D12Device> device, std::wstring bufferName = L"buffer") :
+	VertexBuffer(ID3D12Device* device, std::wstring bufferName = L"buffer") :
 		DefaultBuffer(device, bufferName)
 	{
 

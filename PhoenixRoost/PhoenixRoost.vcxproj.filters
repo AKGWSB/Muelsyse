@@ -33,18 +33,15 @@
     <ClCompile Include="Resource\DefaultBuffer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Resource\Texture2D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Win32App.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FrameResource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Engine.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\RenderTexture.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Resource\Shader.h">
@@ -59,9 +56,6 @@
     <ClInclude Include="DX12\DirectXHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Resource\Buffer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Resource\DefaultBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -69,6 +63,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Resource\IndexBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Texture2D.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdparty\stb_image.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

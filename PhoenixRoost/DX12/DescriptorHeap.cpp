@@ -1,18 +1,17 @@
 #include "DescriptorHeap.h"
 
-DescriptorHeap::DescriptorHeap(ID3D12Device* m_device, D3D12_DESCRIPTOR_HEAP_TYPE hType, uint32_t hSize)
+DescriptorHeap::DescriptorHeap(ID3D12Device* m_device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, D3D12_DESCRIPTOR_HEAP_FLAGS heapFlags, UINT hSize)
 {
     // init data
-	heapType = hType;
 	heapSize = hSize;
     freeList = std::vector<int>(heapSize, 0);
-    descriptorSize = m_device->GetDescriptorHandleIncrementSize(hType);
+    descriptorSize = m_device->GetDescriptorHandleIncrementSize(heapType);
 
     // Create descriptor heaps.
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
     heapDesc.NumDescriptors = heapSize;
     heapDesc.Type = heapType;
-    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    heapDesc.Flags = heapFlags;
     ThrowIfFailed(m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
 }
 
@@ -21,9 +20,10 @@ DescriptorHeap::~DescriptorHeap()
 
 }
 
-bool DescriptorHeap::AllocDescriptor(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, UINT& id)
+UINT DescriptorHeap::AllocDescriptor()
 {
     // find first empty place
+    UINT id;
     for (id = 0; id < heapSize; id++)
     {
         if (freeList[id] == 0)
@@ -36,15 +36,10 @@ bool DescriptorHeap::AllocDescriptor(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, UINT
     // run out of descriptor
     if (id == heapSize)
     {
-        id = 0;
-        return false;
+        return 0;
     }
 
-    // alloc handle
-    handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(heap->GetCPUDescriptorHandleForHeapStart());
-    handle.Offset(id, descriptorSize);
-
-    return true;
+    return id;
 }
 
 bool DescriptorHeap::FreeDescriptor(UINT id)
@@ -57,4 +52,29 @@ bool DescriptorHeap::FreeDescriptor(UINT id)
     freeList[id] = 0;
 
     return true;
+}
+
+/*
+ID3D12DescriptorHeap* DescriptorHeap::GetHeap()
+{
+    return heap.Get();
+}
+*/
+
+CD3DX12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCpuHandle(UINT id)
+{
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle;
+    handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(heap->GetCPUDescriptorHandleForHeapStart());
+    handle.Offset(id, descriptorSize);
+
+    return handle;
+}
+
+CD3DX12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetGpuHandle(UINT id)
+{
+    CD3DX12_GPU_DESCRIPTOR_HANDLE handle;
+    handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(heap->GetGPUDescriptorHandleForHeapStart());
+    handle.Offset(id, descriptorSize);
+
+    return handle;
 }
