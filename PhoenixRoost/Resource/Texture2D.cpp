@@ -3,14 +3,21 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include "../3rdparty/stb_image.h"
 
-Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::string texturePath)
+Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, DescriptorHeap* g_samplerHeap, std::string texturePath)
 {
+    // record global heap for descriptor's alloc and release
     srvHeap = g_srvHeap;
+    samplerHeap = g_samplerHeap;
 
-    //
     srvHandleIndex = srvHeap->AllocDescriptor();
     srvCpuHandle = srvHeap->GetCpuHandle(srvHandleIndex);
     srvGpuHandle = srvHeap->GetGpuHandle(srvHandleIndex);
+
+    samplerHandleIndex = samplerHeap->AllocDescriptor();
+    samplerCpuHandle = samplerHeap->GetCpuHandle(samplerHandleIndex);
+    samplerGpuHandle = samplerHeap->GetGpuHandle(samplerHandleIndex);
+
+
 
     // create temp alloctor, list and queue for copy command
     ComPtr<ID3D12CommandAllocator> tempCommandAllocator;
@@ -29,9 +36,12 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
 
 
 
+    // read from file
     int nChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load("D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png", &width, &height, &nChannels, 4);
+
+
 
     // Describe and create a Texture2D.
     D3D12_RESOURCE_DESC textureDesc = {};
@@ -54,6 +64,8 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
         nullptr,
         IID_PPV_ARGS(&buffer)));
 
+    // warning : for texture2D, buffer size always bigger than 1D buffer
+    // using [size = width * height * 4] will cause some problems ...
     const UINT64 uploadBufferSize = GetRequiredIntermediateSize(buffer.Get(), 0, 1);
 
     // Create the GPU upload buffer.
@@ -80,6 +92,8 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
     auto br = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     tempCommandList->ResourceBarrier(1, &br);
 
+
+
     // Describe and create a SRV for the texture.
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -87,6 +101,19 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
     device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvCpuHandle);
+
+    // create sampler descriptor
+    D3D12_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    device->CreateSampler(&samplerDesc, samplerCpuHandle);
 
 
 
@@ -121,4 +148,5 @@ Texture2D::~Texture2D()
 
     // release descriptor
     srvHeap->FreeDescriptor(srvHandleIndex);
+    samplerHeap->FreeDescriptor(samplerHandleIndex);
 }

@@ -3,6 +3,7 @@
 DescriptorHeap::DescriptorHeap(ID3D12Device* m_device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, D3D12_DESCRIPTOR_HEAP_FLAGS heapFlags, UINT hSize)
 {
     // init data
+    descriptorNum = 0;
 	heapSize = hSize;
     freeList = std::vector<int>(heapSize, 0);
     descriptorSize = m_device->GetDescriptorHandleIncrementSize(heapType);
@@ -39,6 +40,7 @@ UINT DescriptorHeap::AllocDescriptor()
         return 0;
     }
 
+    descriptorNum += 1;
     return id;
 }
 
@@ -51,6 +53,7 @@ bool DescriptorHeap::FreeDescriptor(UINT id)
 
     freeList[id] = 0;
 
+    descriptorNum -= 1;
     return true;
 }
 
