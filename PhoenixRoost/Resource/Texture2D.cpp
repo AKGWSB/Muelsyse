@@ -7,54 +7,10 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
 {
     srvHeap = g_srvHeap;
 
-	// load data as rgba format (4 channels)
-    int nChannels;
-    stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nChannels, 4);
-	UINT bufferSize = width * height * 4;
-
-    // alloc a srv descriptor from srv heap
+    //
     srvHandleIndex = srvHeap->AllocDescriptor();
     srvCpuHandle = srvHeap->GetCpuHandle(srvHandleIndex);
     srvGpuHandle = srvHeap->GetGpuHandle(srvHandleIndex);
-
-
-
-    // Describe and create a Texture2D.
-    D3D12_RESOURCE_DESC textureDesc = {};
-    textureDesc.MipLevels = 1;
-    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureDesc.Width = width;
-    textureDesc.Height = height;
-    textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-    textureDesc.DepthOrArraySize = 1;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.SampleDesc.Quality = 0;
-    textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-    // Create the GPU default buffer.
-    auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    ThrowIfFailed(device->CreateCommittedResource(
-        &heapProperties,
-        D3D12_HEAP_FLAG_NONE,
-        &textureDesc,
-        D3D12_RESOURCE_STATE_COPY_DEST,
-        nullptr,
-        IID_PPV_ARGS(&buffer)));
-
-    // Create the GPU upload buffer.
-    ComPtr<ID3D12Resource> uploadBuffer;
-    auto uheapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-    auto uResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-    ThrowIfFailed(device->CreateCommittedResource(
-        &uheapProperties,
-        D3D12_HEAP_FLAG_NONE,
-        &uResourceDesc,
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(&uploadBuffer)));
-
-
 
     // create temp alloctor, list and queue for copy command
     ComPtr<ID3D12CommandAllocator> tempCommandAllocator;
@@ -73,18 +29,56 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
 
 
 
-    // store buffer in upload heap
-    D3D12_SUBRESOURCE_DATA subData = {};
-    subData.pData = data;                   // pointer to our index array
-    subData.RowPitch = width * 4;           // size of all our index buffer
-    subData.SlicePitch = bufferSize;        // also the size of our index buffer
+    int nChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load("D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png", &width, &height, &nChannels, 4);
 
-    UpdateSubresources(tempCommandList.Get(), buffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subData);
+    // Describe and create a Texture2D.
+    D3D12_RESOURCE_DESC textureDesc = {};
+    textureDesc.MipLevels = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Width = width;
+    textureDesc.Height = height;
+    textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    textureDesc.DepthOrArraySize = 1;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
-    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    tempCommandList->ResourceBarrier(1, &barrier);
+    auto hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    ThrowIfFailed(device->CreateCommittedResource(
+        &hp,
+        D3D12_HEAP_FLAG_NONE,
+        &textureDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&buffer)));
 
+    const UINT64 uploadBufferSize = GetRequiredIntermediateSize(buffer.Get(), 0, 1);
 
+    // Create the GPU upload buffer.
+    ComPtr<ID3D12Resource> textureUploadHeap;
+    auto uhp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    auto ubf = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+    ThrowIfFailed(device->CreateCommittedResource(
+        &uhp,
+        D3D12_HEAP_FLAG_NONE,
+        &ubf,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&textureUploadHeap)));
+
+    // Copy data to the intermediate upload heap and then schedule a copy from the upload heap to the Texture2D.
+    const int TexturePixelSize = 4; // RGBA 
+
+    D3D12_SUBRESOURCE_DATA textureData = {};
+    textureData.pData = data;
+    textureData.RowPitch = width * TexturePixelSize;
+    textureData.SlicePitch = textureData.RowPitch * height;
+
+    UpdateSubresources(tempCommandList.Get(), buffer.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
+    auto br = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    tempCommandList->ResourceBarrier(1, &br);
 
     // Describe and create a SRV for the texture.
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -93,7 +87,7 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
     device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvCpuHandle);
-    //device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvHeap->heap->GetCPUDescriptorHandleForHeapStart());
+
 
 
     // exe cmd
