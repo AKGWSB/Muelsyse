@@ -1,6 +1,6 @@
 #include "Texture2D.h"
 
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 #include "../3rdparty/stb_image.h"
 
 Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::string texturePath)
@@ -9,10 +9,9 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
 
 	// load data as rgba format (4 channels)
     int nChannels;
+    stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nChannels, 4);
 	UINT bufferSize = width * height * 4;
-
-
 
     // alloc a srv descriptor from srv heap
     srvHandleIndex = srvHeap->AllocDescriptor();
@@ -76,9 +75,9 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
 
     // store buffer in upload heap
     D3D12_SUBRESOURCE_DATA subData = {};
-    subData.pData = data;                 // pointer to our index array
-    subData.RowPitch = bufferSize;        // size of all our index buffer
-    subData.SlicePitch = bufferSize;      // also the size of our index buffer
+    subData.pData = data;                   // pointer to our index array
+    subData.RowPitch = width * 4;           // size of all our index buffer
+    subData.SlicePitch = bufferSize;        // also the size of our index buffer
 
     UpdateSubresources(tempCommandList.Get(), buffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subData);
 
@@ -117,6 +116,8 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, std::strin
     ThrowIfFailed(tempCommandQueue->Signal(tempFence.Get(), 1));
     ThrowIfFailed(tempFence->SetEventOnCompletion(1, tempFenceEvent));
     WaitForSingleObjectEx(tempFenceEvent, INFINITE, FALSE);
+
+    delete[] data;
 }
 
 Texture2D::~Texture2D()
