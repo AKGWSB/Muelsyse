@@ -22,6 +22,7 @@
     <ClCompile Include="DX12\DescriptorHeap.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Resource\ConstBuffer.cpp" />
     <ClCompile Include="Resource\DefaultBuffer.cpp" />
     <ClCompile Include="Resource\Shader.cpp" />
     <ClCompile Include="Resource\Texture2D.cpp" />
@@ -33,6 +34,7 @@
     <ClInclude Include="DX12\DescriptorHeap.h" />
     <ClInclude Include="DX12\DirectXHelper.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="Resource\ConstBuffer.h" />
     <ClInclude Include="Resource\DefaultBuffer.h" />
     <ClInclude Include="Resource\IndexBuffer.h" />
     <ClInclude Include="Resource\Shader.h" />

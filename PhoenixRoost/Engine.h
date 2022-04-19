@@ -15,6 +15,7 @@
 #include "Resource/VertexBuffer.h"
 #include "Resource/IndexBuffer.h"
 #include "Resource/Texture2D.h"
+#include "Resource/ConstBuffer.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -34,11 +35,18 @@ public:
 	std::shared_ptr<DescriptorHeap> m_rtvHeap;
 	std::shared_ptr<DescriptorHeap> m_srvHeap;
 	std::shared_ptr<DescriptorHeap> m_samplerHeap;
+	std::shared_ptr<DescriptorHeap> m_cbvHeap;
 
 	// App 
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
 	std::shared_ptr<IndexBuffer> m_indexBuffer;
 	std::shared_ptr<Texture2D> m_texture2D;
+	std::shared_ptr<ConstBuffer> m_constBuffer;
+
+	float m_rotateAngle = 0.0f;
+	XMFLOAT4X4 m_modelMatrix;
+	XMFLOAT4X4 m_viewMatrix;
+	XMFLOAT4X4 m_projectionMatrix;
 
 	ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	ComPtr<ID3D12RootSignature> m_rootSignature;

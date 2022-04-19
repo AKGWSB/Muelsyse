@@ -36,6 +36,9 @@
     <ClCompile Include="Resource\Texture2D.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Resource\ConstBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Win32App.h">
@@ -69,6 +72,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="3rdparty\stb_image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\ConstBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

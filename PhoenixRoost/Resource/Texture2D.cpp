@@ -1,6 +1,9 @@
 #include "Texture2D.h"
 
-//#define STB_IMAGE_IMPLEMENTATION
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#endif
+
 #include "../3rdparty/stb_image.h"
 
 Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, DescriptorHeap* g_samplerHeap, std::string texturePath)

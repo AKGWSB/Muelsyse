@@ -70,11 +70,31 @@ struct PSInput
 Texture2D g_texture : register(t0);
 SamplerState g_sampler : register(s0);
 
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 wvpMat;
+    //float nums[1024];
+};
+
 PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
 {
     PSInput result;
 
-    result.position = position;
+    matrix Identity =
+    {
+        { 0.7071068,  0.0000000,  0.7071068, 0 },
+        { 0.0000000,  1.0000000,  0.0000000, 0 },
+        { -0.7071068,  0.0000000,  0.7071068, 0 },
+        { 0, 0, 0, 1 }
+    };
+
+    float4 v4 = float4(position.xyz, 1.0);
+    result.position = mul(wvpMat, position);
+    result.position.z += 0.5;
+
+    //position.x += nums[0];
+    //result.position = position;
+
     result.uv = uv;
 
     return result;

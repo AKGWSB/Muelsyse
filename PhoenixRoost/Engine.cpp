@@ -1,50 +1,5 @@
 #include "Engine.h"
 
-int TextureWidth = 256;
-int TextureHeight = 256;
-int TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
-ComPtr<ID3D12Resource> m_texture;
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "3rdparty/stb_image.h"
-
-// Generate a simple black and white checkerboard texture.
-std::vector<UINT8> GenerateTextureData()
-{
-    const UINT rowPitch = TextureWidth * TexturePixelSize;
-    const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-    const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-    const UINT textureSize = rowPitch * TextureHeight;
-
-    std::vector<UINT8> data(textureSize);
-    UINT8* pData = &data[0];
-
-    for (UINT n = 0; n < textureSize; n += TexturePixelSize)
-    {
-        UINT x = n % rowPitch;
-        UINT y = n / rowPitch;
-        UINT i = x / cellPitch;
-        UINT j = y / cellHeight;
-
-        if (i % 2 == j % 2)
-        {
-            pData[n] = 0x00;        // R
-            pData[n + 1] = 0x00;    // G
-            pData[n + 2] = 0x00;    // B
-            pData[n + 3] = 0xff;    // A
-        }
-        else
-        {
-            pData[n] = 0xff;        // R
-            pData[n + 1] = 0xff;    // G
-            pData[n + 2] = 0xff;    // B
-            pData[n + 3] = 0xff;    // A
-        }
-    }
-
-    return data;
-}
-
 Engine::Engine()
 {
     m_frameIndex = 0;
@@ -144,7 +99,7 @@ void Engine::OnInit()
     m_rtvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
     m_srvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
     m_samplerHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-
+    //m_cbvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 
     // Create frame resources.
     {
@@ -167,7 +122,7 @@ void Engine::OnInit()
     // Create root signature.
     {
         // 2D table to hold different types of descriptor
-        CD3DX12_DESCRIPTOR_RANGE ranges[2];
+        CD3DX12_DESCRIPTOR_RANGE ranges[3];
    
         ranges[0].Init(
             D3D12_DESCRIPTOR_RANGE_TYPE_SRV,                // for srv descriptor
@@ -177,16 +132,22 @@ void Engine::OnInit()
         ranges[1].Init(
             D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,            // for sampler descriptor
             1,
-            0);                                             // bind to register s0
+            0);                                             // bind to register s0           
+
+        ranges[2].Init(
+            D3D12_DESCRIPTOR_RANGE_TYPE_CBV,                // for sampler descriptor
+            1,
+            0);                                             // bind to register b0      
 
         // Root parameter can be a table, root descriptor or root constants.
-        CD3DX12_ROOT_PARAMETER rootParameters[2];
+        CD3DX12_ROOT_PARAMETER rootParameters[3];
         rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
         rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
+        rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
 
         // A root signature is an array of root parameters.
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -269,6 +230,8 @@ void Engine::OnInit()
     // create tex
     m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_srvHeap.get(), m_samplerHeap.get(), "D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png");
 
+    // create const buffer for matrix
+    m_constBuffer = std::make_shared<ConstBuffer>(m_device.Get(), m_srvHeap.get());
 
     // Create synchronization objects and wait until assets have been uploaded to the GPU.
     {
@@ -291,7 +254,17 @@ void Engine::OnInit()
 
 void Engine::OnUpdate()
 {
+    m_rotateAngle += 0.05f;
+    XMStoreFloat4x4(&m_modelMatrix, XMMatrixRotationY(m_rotateAngle));
+    m_constBuffer->UpdateData(&m_modelMatrix, sizeof(m_modelMatrix));
 
+    /*
+    float nums[1024] = { 0.45f };
+    m_constBuffer->UpdateData(nums, sizeof(nums));
+    */
+
+    //m_viewMatrix = XMMatrixIdentity();
+    //m_projectionMatrix = XMMatrixIdentity();
 }
 
 void Engine::OnRender()
@@ -312,13 +285,14 @@ void Engine::OnRender()
     m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
     // set the descriptor heap
-    ID3D12DescriptorHeap* ppHeaps[] = { m_srvHeap->heap.Get(), m_samplerHeap->heap.Get()};
+    ID3D12DescriptorHeap* ppHeaps[] = { m_srvHeap->heap.Get(), m_samplerHeap->heap.Get() };
     m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
     
     // set srv descriptor table, 0 is for index in root parameter table
-    // in my code, rootParameter[0] is for srv descriptors while rootParameter[1] is for sampler descriptors
-    m_commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->heap->GetGPUDescriptorHandleForHeapStart());
-    m_commandList->SetGraphicsRootDescriptorTable(1, m_samplerHeap->heap->GetGPUDescriptorHandleForHeapStart());
+    // in my code, rootParameter[0] is for srv descriptors, while rootParameter[1] is for sampler descriptors, rootParameter[2] is for const buffer descriptor
+    m_commandList->SetGraphicsRootDescriptorTable(0, m_texture2D->srvGpuHandle);
+    m_commandList->SetGraphicsRootDescriptorTable(1, m_texture2D->samplerGpuHandle);
+    m_commandList->SetGraphicsRootDescriptorTable(2, m_constBuffer->cbvGpuHandle);
 
     m_commandList->RSSetViewports(1, &m_viewport);
     m_commandList->RSSetScissorRects(1, &m_scissorRect);
