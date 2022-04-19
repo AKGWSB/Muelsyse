@@ -82,15 +82,12 @@ PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
 {
     PSInput result;
 
-    matrix Identity =
-    {
-        { 0.7071068,  0.0000000,  0.7071068, 0 },
-        { 0.0000000,  1.0000000,  0.0000000, 0 },
-        { -0.7071068,  0.0000000,  0.7071068, 0 },
-        { 0, 0, 0, 1 }
-    };
-
     float4 p = float4(position.xyz, 1.0);
+    /*
+    p = mul(p, modelMatrix);
+    p = mul(p, viewMatrix);
+    p = mul(p, projectionMatrix);
+    */
     p = mul(p, mvpMatrix);
 
     result.position = p;

@@ -94,12 +94,12 @@ void Engine::OnInit()
 
 
 
-
     // Create descriptor heaps.
     m_rtvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
     m_resourceHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
     m_samplerHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-    //m_cbvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+
+
 
     // Create frame resources.
     {
@@ -135,7 +135,7 @@ void Engine::OnInit()
             0);                                             // bind to register s0           
 
         ranges[2].Init(
-            D3D12_DESCRIPTOR_RANGE_TYPE_CBV,                // for sampler descriptor
+            D3D12_DESCRIPTOR_RANGE_TYPE_CBV,                // for cbv descriptor
             1,
             0);                                             // bind to register b0      
 
@@ -159,7 +159,7 @@ void Engine::OnInit()
 
     // Create the pipeline state, which includes compiling and loading shaders.
     {
-        std::unique_ptr<Shader> pShader(new Shader(L"D:/PhoenixRoost/PhoenixRoost/Shaders/shaders.hlsl"));
+        std::unique_ptr<Shader> pShader(new Shader(L"D:/PhoenixRoost/src/Shaders/shaders.hlsl"));
 
         // Define the vertex input layout.
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -281,7 +281,7 @@ void Engine::OnInit()
     }
 
     // create tex
-    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_resourceHeap.get(), m_samplerHeap.get(), "D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png");
+    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_resourceHeap.get(), m_samplerHeap.get(), "D:/PhoenixRoost/asset/93632004_p0.png");
 
     // create const buffer for matrix
     m_constBuffer = std::make_shared<ConstBuffer>(m_device.Get(), m_resourceHeap.get());
@@ -307,25 +307,26 @@ void Engine::OnInit()
 
 void Engine::OnUpdate()
 {
+    // i : matrix must transport before send to GPU
     XMMATRIX m, v, p;
 
     // model matrix
     m_rotateAngle += 0.01f;
     m = XMMatrixRotationY(m_rotateAngle);
-    XMStoreFloat4x4(&m_modelMatrix, m);
+    XMStoreFloat4x4(&m_modelMatrix, XMMatrixTranspose(m));
     
     // build view matrix
     XMVECTOR cPos = XMLoadFloat4(&m_cameraPosition);
     XMVECTOR cTarg = XMLoadFloat4(&m_cameraTarget);
     XMVECTOR cUp = XMLoadFloat4(&m_cameraUp);
     v = XMMatrixLookAtLH(cPos, cTarg, cUp);
-    XMStoreFloat4x4(&m_viewMatrix, v);
+    XMStoreFloat4x4(&m_viewMatrix, XMMatrixTranspose(v));
 
     // build projection matrix
     p = XMMatrixPerspectiveFovLH(60.0f * (3.14f / 180.0f), (float)Win32App::m_width / (float)Win32App::m_height, 0.1f, 1000.0f);
-    XMStoreFloat4x4(&m_projectionMatrix, p);
+    XMStoreFloat4x4(&m_projectionMatrix, XMMatrixTranspose(p));
 
-    // must transopose
+    // mvp
     XMFLOAT4X4 mvpMatrix;
     XMStoreFloat4x4(&mvpMatrix, XMMatrixTranspose(m * v * p));
 

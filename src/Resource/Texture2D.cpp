@@ -42,7 +42,7 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_resourceHeap, Descr
     // read from file
     int nChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load("D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png", &width, &height, &nChannels, 4);
+    unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nChannels, 4);
 
 
 
