@@ -18,7 +18,7 @@ public:
 	int width;
 	int height;
 
-	DescriptorHeap* srvHeap;
+	DescriptorHeap* resourceHeap;
 	DescriptorHeap* samplerHeap;
 
 	ComPtr<ID3D12Resource> buffer;
@@ -31,7 +31,7 @@ public:
 	CD3DX12_GPU_DESCRIPTOR_HANDLE samplerGpuHandle;	// cpu handle for sampler descriptor
 	UINT samplerHandleIndex;						// index in sampler descriptor heap
 
-	Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, DescriptorHeap* g_samplerHeap, std::string texturePath);
+	Texture2D(ID3D12Device* device, DescriptorHeap* g_resourceHeap, DescriptorHeap* g_samplerHeap, std::string texturePath);
 	~Texture2D();
 };
 

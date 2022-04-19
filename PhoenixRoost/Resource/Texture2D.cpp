@@ -6,15 +6,15 @@
 
 #include "../3rdparty/stb_image.h"
 
-Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_srvHeap, DescriptorHeap* g_samplerHeap, std::string texturePath)
+Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_resourceHeap, DescriptorHeap* g_samplerHeap, std::string texturePath)
 {
     // record global heap for descriptor's alloc and release
-    srvHeap = g_srvHeap;
+    resourceHeap = g_resourceHeap;
     samplerHeap = g_samplerHeap;
 
-    srvHandleIndex = srvHeap->AllocDescriptor();
-    srvCpuHandle = srvHeap->GetCpuHandle(srvHandleIndex);
-    srvGpuHandle = srvHeap->GetGpuHandle(srvHandleIndex);
+    srvHandleIndex = resourceHeap->AllocDescriptor();
+    srvCpuHandle = resourceHeap->GetCpuHandle(srvHandleIndex);
+    srvGpuHandle = resourceHeap->GetGpuHandle(srvHandleIndex);
 
     samplerHandleIndex = samplerHeap->AllocDescriptor();
     samplerCpuHandle = samplerHeap->GetCpuHandle(samplerHandleIndex);
@@ -150,6 +150,6 @@ Texture2D::~Texture2D()
     SAFE_RELEASE(buffer.Get());
 
     // release descriptor
-    srvHeap->FreeDescriptor(srvHandleIndex);
+    resourceHeap->FreeDescriptor(srvHandleIndex);
     samplerHeap->FreeDescriptor(samplerHandleIndex);
 }

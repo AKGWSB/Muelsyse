@@ -97,7 +97,7 @@ void Engine::OnInit()
 
     // Create descriptor heaps.
     m_rtvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
-    m_srvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+    m_resourceHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
     m_samplerHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
     //m_cbvHeap = std::make_shared<DescriptorHeap>(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 
@@ -201,6 +201,7 @@ void Engine::OnInit()
     {
         struct Vertex
         {
+            Vertex(float x, float y, float z, float u, float v) : position(x, y, z), texcoord(u, v) {}
             XMFLOAT3 position;
             XMFLOAT2 texcoord;
         };
@@ -208,16 +209,68 @@ void Engine::OnInit()
         // Define the geometry for a triangle.
         std::vector<Vertex> triangleVertices =
         {
-            { { -0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f} },
-            { {  0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f} },
-            { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f} },
-            { {  0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f} }
+            // front face
+            { -0.5f,  0.5f, -0.5f, 0.0f, 1.0f },
+            {  0.5f, -0.5f, -0.5f, 1.0f, 0.0f },
+            { -0.5f, -0.5f, -0.5f, 0.0f, 0.0f },
+            {  0.5f,  0.5f, -0.5f, 1.0f, 1.0f },
+
+            // right side face
+            {  0.5f, -0.5f, -0.5f, 0.0f, 0.0f },
+            {  0.5f,  0.5f,  0.5f, 1.0f, 1.0f },
+            {  0.5f, -0.5f,  0.5f, 1.0f, 0.0f },
+            {  0.5f,  0.5f, -0.5f, 0.0f, 1.0f },
+
+            // left side face
+            { -0.5f,  0.5f,  0.5f, 0.0f, 1.0f },
+            { -0.5f, -0.5f, -0.5f, 1.0f, 0.0f },
+            { -0.5f, -0.5f,  0.5f, 0.0f, 0.0f },
+            { -0.5f,  0.5f, -0.5f, 1.0f, 1.0f },
+
+            // back face
+            {  0.5f,  0.5f,  0.5f, 0.0f, 1.0f },
+            { -0.5f, -0.5f,  0.5f, 1.0f, 0.0f },
+            {  0.5f, -0.5f,  0.5f, 0.0f, 0.0f },
+            { -0.5f,  0.5f,  0.5f, 1.0f, 1.0f },
+
+            // top face
+            { -0.5f,  0.5f, -0.5f, 0.0f, 0.0f },
+            {  0.5f,  0.5f,  0.5f, 1.0f, 1.0f },
+            {  0.5f,  0.5f, -0.5f, 1.0f, 0.0f },
+            { -0.5f,  0.5f,  0.5f, 0.0f, 1.0f },
+
+            // bottom face
+            {  0.5f, -0.5f,  0.5f, 0.0f, 1.0f },
+            { -0.5f, -0.5f, -0.5f, 1.0f, 0.0f },
+            {  0.5f, -0.5f, -0.5f, 0.0f, 0.0f },
+            { -0.5f, -0.5f,  0.5f, 1.0f, 1.0f },
         };
 
         std::vector<UINT> triangleIndices =
         {
-            0, 1, 2,
-            0, 3, 1
+            // ffront face
+            0, 1, 2, // first triangle
+            0, 3, 1, // second triangle
+
+            // left face
+            4, 5, 6, // first triangle
+            4, 7, 5, // second triangle
+
+            // right face
+            8, 9, 10, // first triangle
+            8, 11, 9, // second triangle
+
+            // back face
+            12, 13, 14, // first triangle
+            12, 15, 13, // second triangle
+
+            // top face
+            16, 17, 18, // first triangle
+            16, 19, 17, // second triangle
+
+            // bottom face
+            20, 21, 22, // first triangle
+            20, 23, 21, // second triangle
         };
 
         m_vertexBuffer = std::make_shared<VertexBuffer>(m_device.Get(), L"vertBuffer");
@@ -228,10 +281,10 @@ void Engine::OnInit()
     }
 
     // create tex
-    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_srvHeap.get(), m_samplerHeap.get(), "D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png");
+    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_resourceHeap.get(), m_samplerHeap.get(), "D:/PhoenixRoost/PhoenixRoost/asset/93632004_p0.png");
 
     // create const buffer for matrix
-    m_constBuffer = std::make_shared<ConstBuffer>(m_device.Get(), m_srvHeap.get());
+    m_constBuffer = std::make_shared<ConstBuffer>(m_device.Get(), m_resourceHeap.get());
 
     // Create synchronization objects and wait until assets have been uploaded to the GPU.
     {
@@ -254,17 +307,30 @@ void Engine::OnInit()
 
 void Engine::OnUpdate()
 {
-    m_rotateAngle += 0.05f;
-    XMStoreFloat4x4(&m_modelMatrix, XMMatrixRotationY(m_rotateAngle));
-    m_constBuffer->UpdateData(&m_modelMatrix, sizeof(m_modelMatrix));
+    XMMATRIX m, v, p;
 
-    /*
-    float nums[1024] = { 0.45f };
-    m_constBuffer->UpdateData(nums, sizeof(nums));
-    */
+    // model matrix
+    m_rotateAngle += 0.01f;
+    m = XMMatrixRotationY(m_rotateAngle);
+    XMStoreFloat4x4(&m_modelMatrix, m);
+    
+    // build view matrix
+    XMVECTOR cPos = XMLoadFloat4(&m_cameraPosition);
+    XMVECTOR cTarg = XMLoadFloat4(&m_cameraTarget);
+    XMVECTOR cUp = XMLoadFloat4(&m_cameraUp);
+    v = XMMatrixLookAtLH(cPos, cTarg, cUp);
+    XMStoreFloat4x4(&m_viewMatrix, v);
 
-    //m_viewMatrix = XMMatrixIdentity();
-    //m_projectionMatrix = XMMatrixIdentity();
+    // build projection matrix
+    p = XMMatrixPerspectiveFovLH(60.0f * (3.14f / 180.0f), (float)Win32App::m_width / (float)Win32App::m_height, 0.1f, 1000.0f);
+    XMStoreFloat4x4(&m_projectionMatrix, p);
+
+    // must transopose
+    XMFLOAT4X4 mvpMatrix;
+    XMStoreFloat4x4(&mvpMatrix, XMMatrixTranspose(m * v * p));
+
+    XMFLOAT4X4 mats[4] = {m_modelMatrix, m_viewMatrix, m_projectionMatrix, mvpMatrix };
+    m_constBuffer->UpdateData(mats, sizeof(mats));
 }
 
 void Engine::OnRender()
@@ -285,7 +351,7 @@ void Engine::OnRender()
     m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
     // set the descriptor heap
-    ID3D12DescriptorHeap* ppHeaps[] = { m_srvHeap->heap.Get(), m_samplerHeap->heap.Get() };
+    ID3D12DescriptorHeap* ppHeaps[] = { m_resourceHeap->heap.Get(), m_samplerHeap->heap.Get() };
     m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
     
     // set srv descriptor table, 0 is for index in root parameter table

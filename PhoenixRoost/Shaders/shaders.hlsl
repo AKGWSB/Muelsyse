@@ -72,8 +72,10 @@ SamplerState g_sampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
 {
-    float4x4 wvpMat;
-    //float nums[1024];
+    float4x4 modelMatrix;
+    float4x4 viewMatrix;
+    float4x4 projectionMatrix;
+    float4x4 mvpMatrix;
 };
 
 PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
@@ -88,12 +90,10 @@ PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
         { 0, 0, 0, 1 }
     };
 
-    float4 v4 = float4(position.xyz, 1.0);
-    result.position = mul(wvpMat, position);
-    result.position.z += 0.5;
+    float4 p = float4(position.xyz, 1.0);
+    p = mul(p, mvpMatrix);
 
-    //position.x += nums[0];
-    //result.position = position;
+    result.position = p;
 
     result.uv = uv;
 

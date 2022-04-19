@@ -18,7 +18,7 @@ public:
 	std::wstring bufferName;
 	ComPtr<ID3D12Resource> buffer;
 
-	DescriptorHeap* cbvHeap;
+	DescriptorHeap* resourceHeap;
 	CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCpuHandle;		// cpu handle for cbv descriptor
 	CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGpuHandle;		// gpu handle for cbv descriptor
 	UINT cbvHandleIndex;							// index in cbv descriptor heap
@@ -27,7 +27,7 @@ public:
 	// change in this address will mapped to GPU memory
 	UINT8* mappedCpuAddress;
 
-	ConstBuffer(ID3D12Device* dv, DescriptorHeap* g_cbvHeap, std::wstring bn = L"buffer", UINT bs = 4096);
+	ConstBuffer(ID3D12Device* dv, DescriptorHeap* g_resourceHeap, std::wstring bn = L"buffer", UINT bs = 4096);
 	~ConstBuffer();
 
 	void UpdateData(const void* pdata, UINT size);

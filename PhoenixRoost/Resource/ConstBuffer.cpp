@@ -1,9 +1,9 @@
 #include "ConstBuffer.h"
 
-ConstBuffer::ConstBuffer(ID3D12Device* dv, DescriptorHeap* g_cbvHeap, std::wstring bn, UINT bs)
+ConstBuffer::ConstBuffer(ID3D12Device* dv, DescriptorHeap* g_resourceHeap, std::wstring bn, UINT bs)
 {
 	device = dv;
-    cbvHeap = g_cbvHeap;
+    resourceHeap = g_resourceHeap;
 	bufferName = bn;
 	bufferSize = bs;
     mappedCpuAddress = nullptr;
@@ -17,9 +17,9 @@ ConstBuffer::ConstBuffer(ID3D12Device* dv, DescriptorHeap* g_cbvHeap, std::wstri
 
 
     // alloc cbv descriptor
-    cbvHandleIndex = cbvHeap->AllocDescriptor();
-    cbvCpuHandle = cbvHeap->GetCpuHandle(cbvHandleIndex);
-    cbvGpuHandle = cbvHeap->GetGpuHandle(cbvHandleIndex);
+    cbvHandleIndex = resourceHeap->AllocDescriptor();
+    cbvCpuHandle = resourceHeap->GetCpuHandle(cbvHandleIndex);
+    cbvGpuHandle = resourceHeap->GetGpuHandle(cbvHandleIndex);
 
 
 
@@ -52,7 +52,7 @@ ConstBuffer::~ConstBuffer()
     SAFE_RELEASE(buffer.Get());
 
     // release descriptor
-    cbvHeap->FreeDescriptor(cbvHandleIndex);
+    resourceHeap->FreeDescriptor(cbvHandleIndex);
 
     // release memory mapping
     //buffer->Unmap(0, nullptr);

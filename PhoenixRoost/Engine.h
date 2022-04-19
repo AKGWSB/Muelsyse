@@ -33,9 +33,8 @@ public:
 
 	// desc
 	std::shared_ptr<DescriptorHeap> m_rtvHeap;
-	std::shared_ptr<DescriptorHeap> m_srvHeap;
+	std::shared_ptr<DescriptorHeap> m_resourceHeap;
 	std::shared_ptr<DescriptorHeap> m_samplerHeap;
-	std::shared_ptr<DescriptorHeap> m_cbvHeap;
 
 	// App 
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
@@ -44,6 +43,9 @@ public:
 	std::shared_ptr<ConstBuffer> m_constBuffer;
 
 	float m_rotateAngle = 0.0f;
+	XMFLOAT4 m_cameraPosition = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
+	XMFLOAT4 m_cameraTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	XMFLOAT4 m_cameraUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
 	XMFLOAT4X4 m_modelMatrix;
 	XMFLOAT4X4 m_viewMatrix;
 	XMFLOAT4X4 m_projectionMatrix;
