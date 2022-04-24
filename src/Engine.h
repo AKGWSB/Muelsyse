@@ -17,6 +17,8 @@
 #include "Resource/Texture2D.h"
 #include "Resource/ConstBuffer.h"
 
+#include "Rendering/Camera.h"
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -42,13 +44,10 @@ public:
 	std::shared_ptr<Texture2D> m_texture2D;
 	std::shared_ptr<ConstBuffer> m_constBuffer;
 
+	Camera mainCamera;
 	float m_rotateAngle = 0.0f;
-	XMFLOAT4 m_cameraPosition = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
-	XMFLOAT4 m_cameraTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	XMFLOAT4 m_cameraUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
 	XMFLOAT4X4 m_modelMatrix;
-	XMFLOAT4X4 m_viewMatrix;
-	XMFLOAT4X4 m_projectionMatrix;
+
 
 	ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	ComPtr<ID3D12RootSignature> m_rootSignature;

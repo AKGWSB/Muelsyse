@@ -12,6 +12,8 @@
 #include "DefaultBuffer.h"
 #include "../DX12/DescriptorHeap.h"
 
+#include "PathUtil.h"
+
 class Texture2D
 {
 public:

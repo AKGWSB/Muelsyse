@@ -1,7 +1,7 @@
 #include "Win32App.h"
 
-int Win32App::m_width = 512;
-int Win32App::m_height = 512;
+int Win32App::m_width = 1280;
+int Win32App::m_height = 720;
 std::wstring Win32App::m_title = L"PhoenixRoost Editor";
 HWND Win32App::m_hwnd = nullptr;
 

@@ -6,6 +6,7 @@
 
 #include "../3rdparty/stb_image.h"
 
+
 Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_resourceHeap, DescriptorHeap* g_samplerHeap, std::string texturePath)
 {
     // record global heap for descriptor's alloc and release
@@ -42,7 +43,8 @@ Texture2D::Texture2D(ID3D12Device* device, DescriptorHeap* g_resourceHeap, Descr
     // read from file
     int nChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nChannels, 4);
+    std::string fullPath = PathUtil::GetAssetFullPath(texturePath);
+    unsigned char* data = stbi_load(fullPath.c_str(), &width, &height, &nChannels, 4);
 
 
 

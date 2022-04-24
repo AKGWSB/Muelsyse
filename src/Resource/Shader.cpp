@@ -1,7 +1,10 @@
 #include "Shader.h"
 
-Shader::Shader(std::wstring fullPath)
+Shader::Shader(std::string fullPath)
 {
+    fullPath = PathUtil::GetShaderFullPath(fullPath);
+    std::wstring fp = PathUtil::StringToLPCWSTR(fullPath);
+
 #if defined(_DEBUG)
     // Enable better shader debugging with the graphics debugging tools.
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -10,7 +13,7 @@ Shader::Shader(std::wstring fullPath)
 #endif
     
     ComPtr<ID3DBlob> vsErrorMsgs;
-    D3DCompileFromFile(fullPath.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShaderBlob, &vsErrorMsgs);
+    D3DCompileFromFile(fp.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShaderBlob, &vsErrorMsgs);
     if (vsErrorMsgs != nullptr)
     {
         //OutputDebugStringA((char*)vsErrorMsgs->GetBufferPointer());
@@ -18,7 +21,7 @@ Shader::Shader(std::wstring fullPath)
     
 
     ComPtr<ID3DBlob> psErrorMsgs;
-    D3DCompileFromFile(fullPath.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShaderBlob, &psErrorMsgs);
+    D3DCompileFromFile(fp.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShaderBlob, &psErrorMsgs);
     if (psErrorMsgs != nullptr)
     {
         //OutputDebugStringA((char*)psErrorMsgs->GetBufferPointer());

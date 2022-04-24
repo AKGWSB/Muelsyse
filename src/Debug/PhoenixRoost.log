@@ -1,0 +1,13 @@
+﻿  DescriptorHeap.cpp
+  Engine.cpp
+D:\Phoe\PhoenixRoost\src\Engine.cpp(290,54): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+D:\Phoe\PhoenixRoost\src\Engine.cpp(290,35): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+  Main.cpp
+  Camera.cpp
+  ConstBuffer.cpp
+  DefaultBuffer.cpp
+  Shader.cpp
+  Texture2D.cpp
+  Win32App.cpp
+  正在生成代码...
+  PhoenixRoost.vcxproj -> D:\Phoe\PhoenixRoost\Debug\PhoenixRoost.exe

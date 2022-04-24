@@ -61,6 +61,18 @@ float4 PSMain(PSInput input) : SV_TARGET
     //return float4(texcoord.x, texcoord.y, 0, 1);
 }*/
 
+struct AppData
+{
+    float4 position : POSITION;
+    float2 uv : TEXCOORD;
+};
+
+struct v2f
+{
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
+};
+
 struct PSInput
 {
     float4 position : SV_POSITION;
@@ -83,13 +95,9 @@ PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
     PSInput result;
 
     float4 p = float4(position.xyz, 1.0);
-    /*
     p = mul(p, modelMatrix);
     p = mul(p, viewMatrix);
     p = mul(p, projectionMatrix);
-    */
-    p = mul(p, mvpMatrix);
-
     result.position = p;
 
     result.uv = uv;

@@ -159,7 +159,7 @@ void Engine::OnInit()
 
     // Create the pipeline state, which includes compiling and loading shaders.
     {
-        std::unique_ptr<Shader> pShader(new Shader(L"D:/PhoenixRoost/src/Shaders/shaders.hlsl"));
+        std::unique_ptr<Shader> pShader(new Shader("shaders.hlsl"));
 
         // Define the vertex input layout.
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -281,10 +281,13 @@ void Engine::OnInit()
     }
 
     // create tex
-    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_resourceHeap.get(), m_samplerHeap.get(), "D:/PhoenixRoost/asset/93632004_p0.png");
+    m_texture2D = std::make_shared<Texture2D>(m_device.Get(), m_resourceHeap.get(), m_samplerHeap.get(), "93632004_p0.png");
 
     // create const buffer for matrix
     m_constBuffer = std::make_shared<ConstBuffer>(m_device.Get(), m_resourceHeap.get());
+
+    // create camera
+    mainCamera = Camera(Win32App::m_width, Win32App::m_height);
 
     // Create synchronization objects and wait until assets have been uploaded to the GPU.
     {
@@ -307,30 +310,16 @@ void Engine::OnInit()
 
 void Engine::OnUpdate()
 {
-    // i : matrix must transport before send to GPU
-    XMMATRIX m, v, p;
-
     // model matrix
     m_rotateAngle += 0.01f;
-    m = XMMatrixRotationY(m_rotateAngle);
+    XMMATRIX m = XMMatrixRotationY(m_rotateAngle);
     XMStoreFloat4x4(&m_modelMatrix, XMMatrixTranspose(m));
     
-    // build view matrix
-    XMVECTOR cPos = XMLoadFloat4(&m_cameraPosition);
-    XMVECTOR cTarg = XMLoadFloat4(&m_cameraTarget);
-    XMVECTOR cUp = XMLoadFloat4(&m_cameraUp);
-    v = XMMatrixLookAtLH(cPos, cTarg, cUp);
-    XMStoreFloat4x4(&m_viewMatrix, XMMatrixTranspose(v));
+    mainCamera.SetPosition(XMFLOAT3(0, 2, -4));
+    XMFLOAT4X4 v = mainCamera.GetViewMatrix();
+    XMFLOAT4X4 p = mainCamera.GetProjectionMatrix();
 
-    // build projection matrix
-    p = XMMatrixPerspectiveFovLH(60.0f * (3.14f / 180.0f), (float)Win32App::m_width / (float)Win32App::m_height, 0.1f, 1000.0f);
-    XMStoreFloat4x4(&m_projectionMatrix, XMMatrixTranspose(p));
-
-    // mvp
-    XMFLOAT4X4 mvpMatrix;
-    XMStoreFloat4x4(&mvpMatrix, XMMatrixTranspose(m * v * p));
-
-    XMFLOAT4X4 mats[4] = {m_modelMatrix, m_viewMatrix, m_projectionMatrix, mvpMatrix };
+    XMFLOAT4X4 mats[3] = {m_modelMatrix, v, p };
     m_constBuffer->UpdateData(mats, sizeof(mats));
 }
 
