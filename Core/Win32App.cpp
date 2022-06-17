@@ -60,6 +60,10 @@ int Win32App::Run(Engine* pEngine, HINSTANCE hInstance, int nCmdShow)
     return static_cast<char>(msg.wParam);
 }
 
+// imgui
+#include "../Library/imgui/imgui.h"
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 // Main message handler for the sample.
 LRESULT CALLBACK Win32App::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -87,6 +91,9 @@ LRESULT CALLBACK Win32App::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LP
         PostQuitMessage(0);
         return 0;
     }
+
+    // handle message to imgui
+    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
 
     // Handle any messages the switch statement didn't.
     return DefWindowProc(hWnd, message, wParam, lParam);

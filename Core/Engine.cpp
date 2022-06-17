@@ -1,12 +1,15 @@
 #include "Engine.h"
 #include "GraphicContex.h"
 #include "helper.h"
+
 #include "../Rendering/Transform.h"
 #include "../Rendering/Camera.h"
 #include "../Rendering/RenderPass.h"
 #include "../Rendering/RenderTexture.h"
 #include "../Rendering/DepthTexture.h"
+
 #include "../Editor/Actor.h"
+#include "../Editor/Editor.h"
 
 // App resources.
 Camera* camera;
@@ -20,6 +23,8 @@ std::unique_ptr<RenderPass> finalPass;
 
 std::unique_ptr<Actor> A_spaceship;
 std::unique_ptr<Actor> A_cube;
+
+std::unique_ptr<Editor> editor;
 
 Engine::Engine()
 {
@@ -72,6 +77,9 @@ void Engine::OnInit()
 
     quad = std::make_unique<Mesh>();
     quad->GenerateQuad();
+
+    editor = std::make_unique<Editor>();
+    editor->Init(g_hwnd);
 }
 
 void Engine::OnUpdate()
@@ -105,6 +113,9 @@ void Engine::OnRender()
 
         quad->Draw();
     }
+    editor->PreGUI();
+    editor->RenderGUI();
+    editor->PostGUI();
 
 	GraphicContex::PostRender();
 }
