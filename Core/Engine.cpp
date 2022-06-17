@@ -78,8 +78,13 @@ void Engine::OnInit()
     quad = std::make_unique<Mesh>();
     quad->GenerateQuad();
 
+
+    // init editor
     editor = std::make_unique<Editor>();
     editor->Init(g_hwnd);
+
+    // for test
+    editor->depthTex = RT_basePassDepth.get();
 }
 
 void Engine::OnUpdate()

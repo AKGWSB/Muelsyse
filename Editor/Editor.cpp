@@ -21,6 +21,9 @@ Editor::~Editor()
 
 void Editor::Init(HWND hwnd)
 {
+    // use our global heap
+    // GraphicContex::g_srvHeap
+    /*
     // create heap
     D3D12_DESCRIPTOR_HEAP_DESC SrvHeapDesc;
     SrvHeapDesc.NumDescriptors = 1;
@@ -29,7 +32,12 @@ void Editor::Init(HWND hwnd)
     SrvHeapDesc.NodeMask = 0;
     ThrowIfFailed(GraphicContex::g_device->CreateDescriptorHeap(
         &SrvHeapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())));
+    */
 
+    // alloc descriptor from global heap
+    srvHandleIndex = GraphicContex::g_srvHeap->AllocDescriptor();
+    srvCpuHandle = GraphicContex::g_srvHeap->GetCpuHandle(srvHandleIndex);
+    srvGpuHandle = GraphicContex::g_srvHeap->GetGpuHandle(srvHandleIndex);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -45,9 +53,11 @@ void Editor::Init(HWND hwnd)
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX12_Init(GraphicContex::g_device.Get(), GraphicContex::FrameCount,
-        DXGI_FORMAT_R8G8B8A8_UNORM, mSrvHeap.Get(),
-        mSrvHeap->GetCPUDescriptorHandleForHeapStart(),
-        mSrvHeap->GetGPUDescriptorHandleForHeapStart());
+        DXGI_FORMAT_R8G8B8A8_UNORM, 
+        GraphicContex::g_srvHeap->heap.Get(),
+        srvCpuHandle,
+        srvGpuHandle
+    );
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -74,7 +84,7 @@ void Editor::PreGUI()
 
 void Editor::PostGUI()
 {
-    GraphicContex::g_commandList->SetDescriptorHeaps(1, mSrvHeap.GetAddressOf());
+    //GraphicContex::g_commandList->SetDescriptorHeaps(1, mSrvHeap.GetAddressOf());
     ImGui::Render();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), GraphicContex::g_commandList.Get());
 }
@@ -96,6 +106,8 @@ void Editor::RenderGUI()
 
 
     ImGui::Checkbox("Another Window", &show_another_window);
+
+    ImGui::Checkbox("Show Depth buffer", &show_depth_tex);
 
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 
@@ -119,6 +131,21 @@ void Editor::RenderGUI()
             show_another_window = false;
         ImGui::End();
     }
+    
+    // show depth
+    if (show_depth_tex)
+    {
+        ImGui::Begin("DirectX12 Texture Test");
+        ImGui::Text("CPU handle = %p", depthTex->srvCpuHandle);
+        ImGui::Text("GPU handle = %p", depthTex->srvGpuHandle);
+        ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
+        float w = depthTex->width / 3.0f;
+        float h = depthTex->height / 3.0f;
 
-   
+        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(depthTex->srvGpuHandle).ptr;
+
+        // Note that we pass the GPU SRV handle here, *not* the CPU handle. We're passing the internal pointer value, cast to an ImTextureID
+        ImGui::Image((ImTextureID)hdptr, ImVec2(w, h));
+        ImGui::End();
+    }
 }

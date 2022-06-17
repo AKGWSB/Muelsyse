@@ -47,12 +47,12 @@ float4 PSMain(PSInput input) : SV_TARGET
     float4 color = float4(0,0,0,1);
     color.rgb += mainTex.Sample(DefaultSampler, input.texcoord);
 
-    /**/
+    /*
     if (input.texcoord.x < 0.5f && input.texcoord.y < 0.5f)
     {
         float d = depthTex.Sample(DefaultSampler, input.texcoord * 2).r;
         color.rgb = float3(d, d, d);
-    }
+    }*/
 
     return color;
 }

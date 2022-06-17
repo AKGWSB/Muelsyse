@@ -1,7 +1,7 @@
 #include "Win32App.h"
 
-int Win32App::m_width = 1280;
-int Win32App::m_height = 720;
+int Win32App::m_width = 1600;
+int Win32App::m_height = 900;
 std::wstring Win32App::m_title = L"PhoenixRoost";
 HWND Win32App::m_hwnd = nullptr;
 
