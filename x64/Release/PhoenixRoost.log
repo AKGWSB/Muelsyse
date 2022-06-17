@@ -1,0 +1,28 @@
+﻿  DescriptorHeap.cpp
+  Engine.cpp
+D:\PhoenixRoost\Core\Engine.cpp(43,34): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+D:\PhoenixRoost\Core\Engine.cpp(43,25): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+D:\PhoenixRoost\Core\Engine.cpp(73,45): warning C4305: “参数”: 从“double”到“float”截断
+D:\PhoenixRoost\Core\Engine.cpp(132,47): warning C4244: “+=”: 从“double”转换到“float”，可能丢失数据
+  GraphicContex.cpp
+  DepthTexture.cpp
+  RenderPass.cpp
+D:\PhoenixRoost\Rendering\RenderPass.cpp(62,56): warning C4267: “=”: 从“size_t”转换到“UINT”，可能丢失数据
+  RenderTexture.cpp
+  Buffer.cpp
+  Mesh.cpp
+D:\PhoenixRoost\Resource\Mesh.cpp(53,67): warning C4267: “初始化”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\PhoenixRoost\Resource\Mesh.cpp(53,67): warning C4267: “初始化”: 从“size_t”转换到“const UINT”，可能丢失数据
+D:\PhoenixRoost\Resource\Mesh.cpp(70,73): warning C4267: “参数”: 从“size_t”转换到“UINT”，可能丢失数据
+D:\PhoenixRoost\Resource\Mesh.cpp(145,33): warning C4834: 放弃具有 "nodiscard" 属性的函数的返回值
+  Shader.cpp
+D:\PhoenixRoost\Resource\Shader.cpp(139,67): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\PhoenixRoost\Resource\Shader.cpp(199,147): warning C4267: “参数”: 从“size_t”转换到“UINT”，可能丢失数据
+  Texture2D.cpp
+  UploadBuffer.cpp
+  正在生成代码
+  465 of 3262 functions (14.3%) were compiled, the rest were copied from previous compilation.
+    197 functions were new in current compilation
+    432 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  PhoenixRoost.vcxproj -> D:\PhoenixRoost\x64\Release\PhoenixRoost.exe

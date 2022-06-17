@@ -1,0 +1,9 @@
+﻿  Engine.cpp
+D:\PhoenixRoost\Core\Engine.cpp(39,34): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+D:\PhoenixRoost\Core\Engine.cpp(39,25): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+D:\PhoenixRoost\Core\Engine.cpp(63,62): warning C4305: “参数”: 从“double”到“float”截断
+D:\PhoenixRoost\Core\Engine.cpp(119,60): warning C4244: “+=”: 从“double”转换到“float”，可能丢失数据
+D:\PhoenixRoost\Core\Engine.cpp(120,56): warning C4244: “+=”: 从“double”转换到“float”，可能丢失数据
+  GraphicContex.cpp
+  正在生成代码...
+  PhoenixRoost.vcxproj -> D:\PhoenixRoost\x64\Debug\PhoenixRoost.exe
