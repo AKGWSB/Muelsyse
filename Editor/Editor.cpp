@@ -1,9 +1,5 @@
 #include "Editor.h"
 
-#include "../Library/imgui/imgui.h"
-#include "../Library/imgui/imgui_impl_win32.h"
-#include "../Library/imgui/imgui_impl_dx12.h"
-
 #include "../Core/helper.h"
 #include "../Core/GraphicContex.h"
 
@@ -77,6 +73,9 @@ void Editor::Init(int w, int h, HWND hwnd)
     ImFont* font = io.Fonts->AddFontFromFileTTF("Library/imgui/fonts/Cousine-Regular.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     IM_ASSERT(font != NULL);
 
+    font_small= io.Fonts->AddFontFromFileTTF("Library/imgui/fonts/Cousine-Regular.ttf", 11.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    IM_ASSERT(font_small != NULL);
+
     // 
     emptyRenderPass = std::make_unique<RenderPass>();
 
@@ -128,15 +127,18 @@ void Editor::RenderGUI()
         window_flags |= ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoResize;
 
-        pos.x = work_pos.x;
-        pos.y = work_pos.y;
+        pos.x = work_pos.x + g_width * 0.3;
+        pos.y = work_pos.y + g_height * 0.7;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowSize(ImVec2(g_width * 0.15, g_height * 0.7));
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.4, g_height * 0.3));
 
         ImGui::Begin("Scene", 0, window_flags);
 
+        if (ImGui::CollapsingHeader("Help"))
+        {
+        }
+
         // cameras
-        
         if (ImGui::TreeNodeEx("Camera list", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Text("mainCamera");
@@ -144,7 +146,7 @@ void Editor::RenderGUI()
         }
         
         // actors
-        
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
         if (ImGui::TreeNodeEx("Actors list", ImGuiTreeNodeFlags_DefaultOpen))
         {
             // show all actors in scene
@@ -176,30 +178,27 @@ void Editor::RenderGUI()
         window_flags |= ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoResize;
 
-        pos.x = work_pos.x + g_width * 0.85;
+        pos.x = work_pos.x;
         pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowSize(ImVec2(g_width * 0.15, g_height * 0.7));
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.3, g_height));
 
         ImGui::Begin("Detail Information", 0, window_flags);
 
         if (currencSelectedActor)
         {
-            
             if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Text(currencSelectedActor->name.c_str());
                 ImGui::TreePop();
             }
             
-            
+            ImGui::Dummy(ImVec2(0.0f, 10.0f));
             if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen))
             {
                
                 Transform& t = currencSelectedActor->transform;
-
-                // position
-
+                
                 float u[3] = { t.position.x, t.position.y, t.position.z };
                 ImGui::InputFloat3("position", u, "%.1f");
                 t.position = XMFLOAT3(u[0], u[1], u[2]);
@@ -211,7 +210,61 @@ void Editor::RenderGUI()
                 float w[3] = { t.scale.x, t.scale.y, t.scale.z };
                 ImGui::InputFloat3("scale", w, "%.1f");
                 t.scale = XMFLOAT3(w[0], w[1], w[2]);
+
+                ImGui::TreePop();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 10.0f));
+            if (ImGui::TreeNodeEx("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::Text(currencSelectedActor->mesh->name.c_str());
+                if (ImGui::Button("select mesh"))
+                {
+
+                }
+                ImGui::TreePop();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 10.0f));
+            if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::Text(currencSelectedActor->material->name.c_str());
+                if (ImGui::Button("select material"))
+                {
+
+                }
+
+                ImGui::Dummy(ImVec2(0.0f, 10.0f));
+                if (ImGui::TreeNodeEx("shader", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::Text(currencSelectedActor->material->shader->name.c_str());
+                    if (ImGui::Button("select shader"))
+                    {
+
+                    }
+
+                    ImGui::TreePop();
+                }
                 
+                ImGui::Dummy(ImVec2(0.0f, 10.0f));
+                if (ImGui::TreeNodeEx("textures", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    for (auto& p : currencSelectedActor->material->textures)
+                    {
+                        auto texName = p.first;
+                        auto tex = p.second;
+
+                        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
+                        ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128));
+                        ImGui::Text(tex->name.c_str());
+                        if (ImGui::Button("select texture"))
+                        {
+
+                        }
+                    }
+
+                    ImGui::TreePop();
+                }
 
                 ImGui::TreePop();
             }
@@ -221,23 +274,6 @@ void Editor::RenderGUI()
             ImGui::Text("Select an Actor to view detail");
         }
 
-        ImGui::End();
-    }
-   
-    // show depth
-    if (show_depth_tex)
-    {
-        ImGui::Begin("DirectX12 Texture Test");
-        ImGui::Text("CPU handle = %p", depthTex->srvCpuHandle);
-        ImGui::Text("GPU handle = %p", depthTex->srvGpuHandle);
-        ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
-        float w = depthTex->width / 3.0f;
-        float h = depthTex->height / 3.0f;
-
-        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(depthTex->srvGpuHandle).ptr;
-
-        // Note that we pass the GPU SRV handle here, *not* the CPU handle. We're passing the internal pointer value, cast to an ImTextureID
-        ImGui::Image((ImTextureID)hdptr, ImVec2(w, h));
         ImGui::End();
     }
 
@@ -251,17 +287,17 @@ void Editor::RenderGUI()
         window_flags |= ImGuiWindowFlags_NoScrollbar;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-        pos.x = work_pos.x + g_width * 0.15;
+        pos.x = work_pos.x + g_width * 0.3;
         pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowSize(ImVec2(g_width * 0.6, g_height * 0.6));
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.7, g_height * 0.7));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
         ImGui::Begin("screen", 0, window_flags);
         //ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
 
         auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(RT_final->srvGpuHandle).ptr;
-        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width * 0.6, g_height * 0.6));
+        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width * 0.7, g_height * 0.7));
         ImGui::End();
         ImGui::PopStyleVar();
     }
@@ -276,13 +312,33 @@ void Editor::RenderGUI()
         window_flags |= ImGuiWindowFlags_NoTitleBar;
 
         ImGui::SetNextWindowBgAlpha(0.35f);
-        pos.x = work_pos.x + g_width * 0.15;
+        pos.x = work_pos.x + g_width * 0.3;
         pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
 
         ImGui::Begin("Profile", 0, window_flags);
         ImGui::Text("Cost %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
         ImGui::Text("FPS  %.1f", ImGui::GetIO().Framerate);
+        ImGui::End();
+    }
+
+
+    // show depth
+    if (show_depth_tex)
+    {
+        ImGui::Begin("DirectX12 Texture Test");
+        ImGui::Text("CPU handle = %p", depthTex->srvCpuHandle);
+        ImGui::Text("GPU handle = %p", depthTex->srvGpuHandle);
+        ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
+        float w = depthTex->width / 3.0f;
+        float h = depthTex->height / 3.0f;
+
+        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(depthTex->srvGpuHandle).ptr;
+
+        ImGui::ShowDemoWindow();
+
+        // Note that we pass the GPU SRV handle here, *not* the CPU handle. We're passing the internal pointer value, cast to an ImTextureID
+        ImGui::Image((ImTextureID)hdptr, ImVec2(w, h));
         ImGui::End();
     }
 }

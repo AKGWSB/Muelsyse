@@ -7,6 +7,10 @@
 #include "../Rendering/RenderPass.h"
 #include "Scene.h"
 
+#include "../Library/imgui/imgui.h"
+#include "../Library/imgui/imgui_impl_win32.h"
+#include "../Library/imgui/imgui_impl_dx12.h"
+
 using Microsoft::WRL::ComPtr;
 
 class Editor
@@ -19,8 +23,10 @@ public:
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle;		// gpu handle for srv descriptor
 	UINT srvHandleIndex;							// index in srv descriptor heap
 
-	Scene* scene;	// pass from engine
+	ImFont* font_default;
+	ImFont* font_small;
 
+	Scene* scene;	// pass from engine
 	Actor* currencSelectedActor = NULL;
 
 	std::unique_ptr<RenderPass> emptyRenderPass;	// set render target to screen use a empty "RenderPass" class

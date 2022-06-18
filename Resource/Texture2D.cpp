@@ -94,6 +94,8 @@ Texture2D::~Texture2D()
 
 void Texture2D::LoadFromFile(std::string filepath)
 {
+    name = filepath;
+
     // alloc descriptor from global heap
     srvHandleIndex = GraphicContex::g_srvHeap->AllocDescriptor();
     srvCpuHandle = GraphicContex::g_srvHeap->GetCpuHandle(srvHandleIndex);

@@ -6,6 +6,7 @@
 
 Mesh::Mesh(std::string filepath)
 {
+	name = filepath;
 	LoadObj(filepath);
 	Upload();
 }

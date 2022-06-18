@@ -18,6 +18,7 @@ struct Vertex
 class Mesh
 {
 public:
+	std::string name;
 	std::vector<Vertex> vertices;
 	std::unique_ptr<Buffer> vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;

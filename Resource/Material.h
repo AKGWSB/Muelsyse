@@ -11,7 +11,7 @@ using Microsoft::WRL::ComPtr;
 class Material
 {
 public:
-
+	std::string name;
 	Shader* shader;
 
 	// varname --> tex

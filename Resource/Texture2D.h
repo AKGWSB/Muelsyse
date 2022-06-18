@@ -10,6 +10,7 @@ using Microsoft::WRL::ComPtr;
 class Texture2D
 {
 public:
+	std::string name;
 	int width;
 	int height;
 	DXGI_FORMAT format;

@@ -16,6 +16,8 @@ Material::Material()
 
 Material::Material(std::string filepath)
 {
+	name = filepath;
+
 	// 以读模式打开文件
 	std::ifstream in(filepath);
 	std::ostringstream tmp;

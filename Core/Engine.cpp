@@ -67,21 +67,6 @@ void Engine::OnInit()
     
     // create actors
     {
-        /*
-        A_spaceship = std::make_unique<Actor>();
-        A_spaceship->mesh = Mesh::Find("Asset/spaceship/StarSparrow01.obj");
-        A_spaceship->material = new Material();
-        A_spaceship->material->shader = Shader::Find("Shaders/unlit.hlsl");
-        A_spaceship->material->SetTexture("mainTex", Texture2D::Find("Asset/spaceship/StarSparrow_Red.png"));
-        A_spaceship->transform.scale = XMFLOAT3(0.4, 0.4, 0.4);
-
-        A_cube = std::make_unique<Actor>();
-        A_cube->mesh = Mesh::Find("Asset/mcube/mcube.obj");
-        A_cube->material = new Material();
-        A_cube->material->shader = Shader::Find("Shaders/unlit.hlsl");
-        A_cube->material->SetTexture("mainTex", Texture2D::Find("Asset/mcube/mcube.png"));
-        */
-
         A_quad = std::make_unique<Actor>();
         A_quad->mesh = Mesh::Find("BUILD_IN_QUAD");
         A_quad->material = new Material();
