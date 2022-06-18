@@ -151,6 +151,15 @@ void Mesh::LoadObj(std::string filepath)
 std::map<std::string, std::unique_ptr<Mesh>> Mesh::g_meshResourceMap;
 Mesh* Mesh::Find(std::string filepath)
 {
+	// build in mesh
+	if (filepath == "BUILD_IN_QUAD")
+	{
+		g_meshResourceMap[filepath] = std::make_unique<Mesh>();
+		g_meshResourceMap[filepath]->GenerateQuad();
+		return g_meshResourceMap[filepath].get();
+	}
+
+	// from file
     if (g_meshResourceMap.find(filepath) == g_meshResourceMap.end())
     {
         g_meshResourceMap[filepath] = std::make_unique<Mesh>(filepath);

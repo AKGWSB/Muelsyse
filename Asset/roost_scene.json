@@ -1,0 +1,22 @@
+{
+    "name" : "roost_scene.json",
+    "actors" : 
+    [ 
+        {
+            "name" : "spaceship",
+            "mesh" : "Asset/spaceship/StarSparrow01.obj",
+            "material" : "Asset/spaceship/material.json",
+            "position" : [0.0,0.0,0.0],
+            "rotation" : [0.0,0.0,0.0],
+            "scale" : [1.0,1.0,1.0]
+        },
+        {
+            "name" : "mcube",
+            "mesh" : "Asset/mcube/mcube.obj",
+            "material" : "Asset/mcube/material.json",
+            "position" : [0.0,0.0,0.0],
+            "rotation" : [0.0,0.0,0.0],
+            "scale" : [1.0,1.0,1.0]
+        }
+    ]
+}

@@ -297,7 +297,7 @@ void GraphicContex::SetRenderTarget(RenderPass* pass)
     g_commandList->OMSetRenderTargets(1, rtvHandles.data(), FALSE, pDsvHandle);
 }
 
-void GraphicContex::RenderLoop(Camera* camera, RenderPass* renderPass, std::vector<Actor*> renderObjects)
+void GraphicContex::RenderLoop(Camera* camera, RenderPass* renderPass, const std::vector<Actor*>& renderObjects)
 {
     // change all render texture to "render target" state
     for (auto& rt : renderPass->renderTargets)
@@ -320,6 +320,14 @@ void GraphicContex::RenderLoop(Camera* camera, RenderPass* renderPass, std::vect
         shader->SetCbuffer("cbPrePass", renderPass->cbufferPrePass.get());
         shader->SetMatrix("cbPrePass", "viewMatrix", camera->GetViewMatrix());
         shader->SetMatrix("cbPrePass", "projectionMatrix", camera->GetProjectionMatrix());
+        
+        // set source target
+        for (auto& p : renderPass->sourceTextures)
+        {
+            auto texName = p.first;
+            auto tex = p.second;
+            shader->SetTexture(texName, tex);
+        }
 
         // draw 
         actor->Draw();

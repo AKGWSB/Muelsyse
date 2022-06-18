@@ -22,7 +22,8 @@ public:
 	std::map<std::string, ComPtr<ID3D12PipelineState>> pipelineStatePool;
 
 	std::string name;
-	std::vector<RenderTexture*> renderTargets;
+	std::map<std::string, Texture2D*> sourceTextures;	// input
+	std::vector<RenderTexture*> renderTargets;			// output
 	DepthTexture* depthTex;
 	
 	RenderPass();

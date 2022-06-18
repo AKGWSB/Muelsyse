@@ -67,7 +67,7 @@ public:
     static void SetViewport(int width, int height);
     static void ClearRenderTarget(RenderPass* pass, XMFLOAT3 clearColor);
     static void SetRenderTarget(RenderPass* pass);
-    static void RenderLoop(Camera* camera, RenderPass* renderPass, std::vector<Actor*> renderObjects);
+    static void RenderLoop(Camera* camera, RenderPass* renderPass, const std::vector<Actor*>& renderObjects);
 };
 
 void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter = true);

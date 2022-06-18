@@ -13,18 +13,21 @@
 
 // App resources.
 Camera* camera;
-std::unique_ptr<Mesh> quad;
 
 std::unique_ptr<RenderTexture> RT_basePass;
 std::unique_ptr<DepthTexture> RT_basePassDepth;
+std::unique_ptr<RenderTexture> RT_final;
 
 std::unique_ptr<RenderPass> basePass;
 std::unique_ptr<RenderPass> finalPass;
 
+/*
 std::unique_ptr<Actor> A_spaceship;
-std::unique_ptr<Actor> A_cube;
+std::unique_ptr<Actor> A_cube;*/
+std::unique_ptr<Actor> A_quad;
 
 std::unique_ptr<Editor> editor;
+std::unique_ptr<Scene> scene;
 
 Engine::Engine()
 {
@@ -48,18 +51,23 @@ void Engine::OnInit()
     // create rt
     RT_basePass = std::make_unique<RenderTexture>(g_width, g_height, DXGI_FORMAT_R32G32B32A32_FLOAT);
     RT_basePassDepth = std::make_unique<DepthTexture>(g_width, g_height);
-
+    RT_final = std::make_unique<RenderTexture>(g_width, g_height, DXGI_FORMAT_R8G8B8A8_UNORM);
 
     // create custom pass
-    basePass = std::make_unique<RenderPass>();
-    basePass->name = "BasePass";
-    basePass->renderTargets = { RT_basePass.get() };
-    basePass->depthTex = RT_basePassDepth.get();
+    {
+        basePass = std::make_unique<RenderPass>();
+        basePass->renderTargets = { RT_basePass.get() };
+        basePass->depthTex = RT_basePassDepth.get();
 
-    finalPass = std::make_unique<RenderPass>();
-
+        finalPass = std::make_unique<RenderPass>();
+        finalPass->renderTargets = { RT_final.get() };
+        finalPass->sourceTextures["mainTex"] = RT_basePass.get();
+        finalPass->sourceTextures["depthTex"] = RT_basePassDepth.get();
+    }
+    
     // create actors
     {
+        /*
         A_spaceship = std::make_unique<Actor>();
         A_spaceship->mesh = Mesh::Find("Asset/spaceship/StarSparrow01.obj");
         A_spaceship->material = new Material();
@@ -72,19 +80,29 @@ void Engine::OnInit()
         A_cube->material = new Material();
         A_cube->material->shader = Shader::Find("Shaders/unlit.hlsl");
         A_cube->material->SetTexture("mainTex", Texture2D::Find("Asset/mcube/mcube.png"));
+        */
+
+        A_quad = std::make_unique<Actor>();
+        A_quad->mesh = Mesh::Find("BUILD_IN_QUAD");
+        A_quad->material = new Material();
+        A_quad->material->shader = Shader::Find("Shaders/blit_test.hlsl");
     }
-    
 
-    quad = std::make_unique<Mesh>();
-    quad->GenerateQuad();
-
+    // init scene
+    scene = std::make_unique<Scene>();
 
     // init editor
-    editor = std::make_unique<Editor>();
-    editor->Init(g_hwnd);
+    {
+        editor = std::make_unique<Editor>();
 
-    // for test
-    editor->depthTex = RT_basePassDepth.get();
+        editor->depthTex = RT_basePassDepth.get();
+        editor->RT_final = RT_final.get();
+
+        editor->scene = scene.get();
+
+        editor->Init(g_width, g_height, g_hwnd);
+    }
+
 }
 
 void Engine::OnUpdate()
@@ -99,25 +117,13 @@ void Engine::OnRender()
 	GraphicContex::PreRender();
 	
     // first pass
-    {
-        GraphicContex::RenderLoop(camera, basePass.get(), { A_spaceship.get(), A_cube.get() });
-    }
-
+    auto actors = scene->GetRenderObjects();
+    GraphicContex::RenderLoop(camera, basePass.get(), actors);
+    
     // second pass
-    {
-        auto blit_shader = Shader::Find("Shaders/blit_test.hlsl");
-        auto pso = finalPass->GetPsoByShader(blit_shader);
-        GraphicContex::g_commandList->SetPipelineState(pso);
-
-        blit_shader->SetTexture("mainTex", basePass->renderTargets[0]);
-        blit_shader->SetTexture("depthTex", basePass->depthTex);
-        blit_shader->Activate();
-
-        GraphicContex::SetRenderTarget(finalPass.get());
-        GraphicContex::ClearRenderTarget(finalPass.get(), XMFLOAT3(0.5, 0.5, 0.5));
-
-        quad->Draw();
-    }
+    GraphicContex::RenderLoop(camera, finalPass.get(), { A_quad.get() });
+    
+    // UI pass
     editor->PreGUI();
     editor->RenderGUI();
     editor->PostGUI();
@@ -132,6 +138,5 @@ void Engine::OnDestroy()
 
 void Engine::Tick(double delta_time)
 {
-    A_spaceship->transform.rotation.y += 45.0f * delta_time;
-    A_cube->transform.rotation.y += -90.0f * delta_time;
+    
 }

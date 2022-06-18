@@ -19,8 +19,11 @@ Editor::~Editor()
     ImGui::DestroyContext();
 }
 
-void Editor::Init(HWND hwnd)
+void Editor::Init(int w, int h, HWND hwnd)
 {
+    g_width = w;
+    g_height = h;
+
     // use our global heap
     // GraphicContex::g_srvHeap
     /*
@@ -73,6 +76,12 @@ void Editor::Init(HWND hwnd)
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
     ImFont* font = io.Fonts->AddFontFromFileTTF("Library/imgui/fonts/Cousine-Regular.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     IM_ASSERT(font != NULL);
+
+    // 
+    emptyRenderPass = std::make_unique<RenderPass>();
+
+    // load scene
+    scene->LoadFromFile("Asset/roost_scene.json");
 }
 
 void Editor::PreGUI()
@@ -84,6 +93,10 @@ void Editor::PreGUI()
 
 void Editor::PostGUI()
 {
+    // set render target to screen use a empty "RenderPass" class
+    GraphicContex::SetRenderTarget(emptyRenderPass.get());
+    GraphicContex::ClearRenderTarget(emptyRenderPass.get(), XMFLOAT3(0.5, 0.5, 0.5));
+
     //GraphicContex::g_commandList->SetDescriptorHeaps(1, mSrvHeap.GetAddressOf());
     ImGui::Render();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), GraphicContex::g_commandList.Get());
@@ -91,47 +104,63 @@ void Editor::PostGUI()
 
 void Editor::RenderGUI()
 {
-    static float f = 0.0f;
-    static int counter = 0;
+    //
+    int corner = 0; // left top
+    const float PAD = 0.0f;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiWindowFlags window_flags = 0;
+    ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+    ImVec2 work_size = viewport->WorkSize;
+    ImVec2 window_pos, window_pos_pivot;
+    ImVec2 pos;
 
-    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+    window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+    window_pos.y = (corner & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+    window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
+    window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
 
-    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        
-    ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+    
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
-
-
-    ImGui::Checkbox("Another Window", &show_another_window);
-
-    ImGui::Checkbox("Show Depth buffer", &show_depth_tex);
-
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-        counter++;
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::End();
-
-    // 3. Show another simple window.
-    if (show_another_window)
+    // scene window
     {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
+        window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoCollapse;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoResize;
+
+        pos.x = work_pos.x;
+        pos.y = work_pos.y;
+        ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.15, g_height * 0.7));
+
+        ImGui::Begin("Scene", 0, window_flags);
+
+        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+
         ImGui::End();
     }
-    
+
+    // Detail window
+    {
+        window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoCollapse;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoResize;
+
+        pos.x = work_pos.x + g_width * 0.85;
+        pos.y = work_pos.y;
+        ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.15, g_height * 0.7));
+
+        ImGui::Begin("Detail Information", 0, window_flags);
+
+        ImGui::ShowDemoWindow();
+
+        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+
+        ImGui::End();
+    }
+   
     // show depth
     if (show_depth_tex)
     {
@@ -146,6 +175,51 @@ void Editor::RenderGUI()
 
         // Note that we pass the GPU SRV handle here, *not* the CPU handle. We're passing the internal pointer value, cast to an ImTextureID
         ImGui::Image((ImTextureID)hdptr, ImVec2(w, h));
+        ImGui::End();
+    }
+
+    // show screen buffer
+    {
+        window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoTitleBar;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_NoCollapse;
+        window_flags |= ImGuiWindowFlags_NoScrollbar;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+        pos.x = work_pos.x + g_width * 0.15;
+        pos.y = work_pos.y;
+        ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.7, g_height * 0.7));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+        ImGui::Begin("screen", 0, window_flags);
+        //ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
+
+        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(RT_final->srvGpuHandle).ptr;
+        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width * 0.7, g_height * 0.7));
+        ImGui::End();
+        ImGui::PopStyleVar();
+    }
+    
+    // show frame rate
+    {
+        window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoCollapse;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+        window_flags |= ImGuiWindowFlags_NoTitleBar;
+
+        ImGui::SetNextWindowBgAlpha(0.35f);
+        pos.x = work_pos.x + g_width * 0.15;
+        pos.y = work_pos.y;
+        ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
+
+        ImGui::Begin("Profile", 0, window_flags);
+        ImGui::Text("Cost %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+        ImGui::Text("FPS  %.1f", ImGui::GetIO().Framerate);
         ImGui::End();
     }
 }

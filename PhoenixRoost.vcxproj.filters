@@ -43,6 +43,9 @@
     <Filter Include="Library\imgui">
       <UniqueIdentifier>{21ff2761-73ef-420d-a093-2fc3f985bc6e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library\json11">
+      <UniqueIdentifier>{7f8b45a7-f575-4528-930f-d01d844da92e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -122,6 +125,12 @@
     </ClCompile>
     <ClCompile Include="Library\imgui\imgui_widgets.cpp">
       <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Scene.cpp">
+      <Filter>源文件\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\json11\json11.cpp">
+      <Filter>Library\json11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -214,6 +223,12 @@
     </ClInclude>
     <ClInclude Include="Library\imgui\imstb_truetype.h">
       <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Scene.h">
+      <Filter>头文件\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\json11\json11.hpp">
+      <Filter>Library\json11</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

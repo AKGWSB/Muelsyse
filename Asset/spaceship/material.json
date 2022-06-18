@@ -1,0 +1,10 @@
+{
+    "shader" : "Shaders/unlit.hlsl",
+    "textures" : 
+    [
+        {
+            "name" : "mainTex",
+            "path" : "Asset/spaceship/StarSparrow_Red.png"
+        }
+    ]
+}
