@@ -135,7 +135,36 @@ void Editor::RenderGUI()
 
         ImGui::Begin("Scene", 0, window_flags);
 
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+        // cameras
+        
+        if (ImGui::TreeNodeEx("Camera list", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text("mainCamera");
+            ImGui::TreePop();
+        }
+        
+        // actors
+        
+        if (ImGui::TreeNodeEx("Actors list", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // show all actors in scene
+            for (auto& actor : scene->actors)
+            {
+                ImVec2 reg = ImGui::GetContentRegionAvail();
+                ImGui::PushItemWidth(reg.x);
+
+                //ImGui::Text("%s", actor->name.c_str());
+                if (ImGui::Button(actor->name.c_str(), ImVec2(reg.x, 30.0f)))
+                {
+                    currencSelectedActor = actor.get();
+                }
+
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::TreePop();
+        }
+        
 
         ImGui::End();
     }
@@ -154,9 +183,43 @@ void Editor::RenderGUI()
 
         ImGui::Begin("Detail Information", 0, window_flags);
 
-        ImGui::ShowDemoWindow();
+        if (currencSelectedActor)
+        {
+            
+            if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::Text(currencSelectedActor->name.c_str());
+                ImGui::TreePop();
+            }
+            
+            
+            if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+               
+                Transform& t = currencSelectedActor->transform;
 
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+                // position
+
+                float u[3] = { t.position.x, t.position.y, t.position.z };
+                ImGui::InputFloat3("position", u, "%.1f");
+                t.position = XMFLOAT3(u[0], u[1], u[2]);
+
+                float v[3] = { t.rotation.x, t.rotation.y, t.rotation.z };
+                ImGui::InputFloat3("rotation", v, "%.1f");
+                t.rotation = XMFLOAT3(v[0], v[1], v[2]);
+                
+                float w[3] = { t.scale.x, t.scale.y, t.scale.z };
+                ImGui::InputFloat3("scale", w, "%.1f");
+                t.scale = XMFLOAT3(w[0], w[1], w[2]);
+                
+
+                ImGui::TreePop();
+            }
+        }
+        else
+        {
+            ImGui::Text("Select an Actor to view detail");
+        }
 
         ImGui::End();
     }
@@ -191,14 +254,14 @@ void Editor::RenderGUI()
         pos.x = work_pos.x + g_width * 0.15;
         pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowSize(ImVec2(g_width * 0.7, g_height * 0.7));
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.6, g_height * 0.6));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
         ImGui::Begin("screen", 0, window_flags);
         //ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
 
         auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(RT_final->srvGpuHandle).ptr;
-        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width * 0.7, g_height * 0.7));
+        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width * 0.6, g_height * 0.6));
         ImGui::End();
         ImGui::PopStyleVar();
     }

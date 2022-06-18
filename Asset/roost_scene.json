@@ -8,7 +8,7 @@
             "material" : "Asset/spaceship/material.json",
             "position" : [0.0,0.0,0.0],
             "rotation" : [0.0,0.0,0.0],
-            "scale" : [1.0,1.0,1.0]
+            "scale" : [0.30,0.30,0.30]
         },
         {
             "name" : "mcube",

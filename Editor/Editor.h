@@ -21,6 +21,8 @@ public:
 
 	Scene* scene;	// pass from engine
 
+	Actor* currencSelectedActor = NULL;
+
 	std::unique_ptr<RenderPass> emptyRenderPass;	// set render target to screen use a empty "RenderPass" class
 	Texture2D* RT_final;
 	Texture2D* depthTex;
