@@ -3,6 +3,7 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <functional>
 #include "../Resource/Texture2D.h"
 #include "../Rendering/RenderTexture.h"
 
@@ -20,7 +21,18 @@ public:
 
 	bool isOpen = false;
 	bool isSelect = false;
+
+	// pass a name for fake callback
+	// we have many buttons that can call our "ResourceViewer" to Open
+	// but when "ResourceViewer" finish a selection, 
+	// the filepath (or filename) should pass to the specific button (caller)
+	// ImGui is a no block API, each button will query the result in the loop, 
+	// but "ResourceViewer" don't know who is the "caller"
+	// cause ImGUI use name to identify component, so "ResourceViewer" also use name to identify buttons
+	std::string bindButtonName;		
+
 	std::string selectResourceName;
+	std::function<void(std::string)> callBack;
 
 	ResourceViewer();
 	~ResourceViewer();
@@ -30,6 +42,6 @@ public:
 	void Init();	
 	void RenderUI();
 
-	void SelectAndClose(std::string selectName);
-	void Open();
+	bool GetSelectResourceName(std::string& o_resourceName, std::string buttonName);
+	void Open(std::string buttonName);
 };

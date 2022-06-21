@@ -251,6 +251,7 @@ void Editor::RenderGUI()
                 }
                 
                 ImGui::Dummy(ImVec2(0.0f, 10.0f));
+                
                 if (ImGui::TreeNodeEx("textures", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     for (auto& p : currencSelectedActor->material->textures)
@@ -262,20 +263,23 @@ void Editor::RenderGUI()
                         ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
                         ImGui::Text(tex->name.c_str());
 
-                        if (ImGui::Button("select texture"))
+                        // button's name
+                        std::string buttonName = "select a texture for " + varname;
+                        if (ImGui::Button(buttonName.c_str()))
                         {
-                            resourceViewer->Open();
-                            
+                            resourceViewer->Open(buttonName);
                         }
+                        ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
                         // change tex
-                        if (resourceViewer->isSelect)
+                        std::string filepath;
+                        if (resourceViewer->GetSelectResourceName(filepath, buttonName))
                         {
                             auto filepath = resourceViewer->selectResourceName; // texture's path
                             currencSelectedActor->material->textures[varname] = Texture2D::Find(filepath);
-                        }
+                        }   
                     }
-
+                    
                     ImGui::TreePop();
                 }
 

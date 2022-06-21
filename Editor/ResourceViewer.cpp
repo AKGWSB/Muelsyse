@@ -76,23 +76,33 @@ void ResourceViewer::RenderUI()
 
 		if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
 		{
-			SelectAndClose(name);
+			isOpen = false;
+			isSelect = true;
+			selectResourceName = name;
 		}
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
 
 	ImGui::End();
 }
-
-void ResourceViewer::Open()
+bool ResourceViewer::GetSelectResourceName(std::string& o_resourceName, std::string buttonName)
 {
-	isOpen = true;
+	// not ready for query
+	if (isOpen) return false;
+	if (!isSelect) return false;
+
+	// check if the caller try to fetch the select resource
+	if (buttonName != bindButtonName) return false;
+
+	buttonName = selectResourceName;
 	isSelect = false;
-	selectResourceName = "";
+
+	return true;
 }
 
-void ResourceViewer::SelectAndClose(std::string selectName)
+void ResourceViewer::Open(std::string buttonName)
 {
-	isOpen = false;
-	isSelect = true;
-	selectResourceName = selectName;
+	bindButtonName = buttonName;
+	isOpen = true;
+	isSelect = false;
 }
