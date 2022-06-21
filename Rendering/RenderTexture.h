@@ -15,4 +15,8 @@ public:
 
 	void ChangeToRenderTargetState();
 	void ChangeToShaderRsourceState();
+
+	// global resource pool, find by name
+	static std::map<std::string, std::unique_ptr<RenderTexture>> g_renderTextureResourceMap;
+	static RenderTexture* Find(std::string name);
 };

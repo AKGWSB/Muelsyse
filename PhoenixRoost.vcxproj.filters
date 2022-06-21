@@ -132,6 +132,9 @@
     <ClCompile Include="Library\json11\json11.cpp">
       <Filter>Library\json11</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\ResourceViewer.cpp">
+      <Filter>源文件\Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\d3dx12.h">
@@ -229,6 +232,9 @@
     </ClInclude>
     <ClInclude Include="Library\json11\json11.hpp">
       <Filter>Library\json11</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\ResourceViewer.h">
+      <Filter>头文件\Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -39,3 +39,14 @@ void RenderTexture::ChangeToShaderRsourceState()
 	auto br = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	GraphicContex::g_commandList->ResourceBarrier(1, &br);
 }
+
+// global resource pool, find by name
+std::map<std::string, std::unique_ptr<RenderTexture>> RenderTexture::g_renderTextureResourceMap;
+RenderTexture* RenderTexture::Find(std::string name)
+{
+	if (g_renderTextureResourceMap.find(name) == g_renderTextureResourceMap.end())
+	{
+		return NULL;
+	}
+	return g_renderTextureResourceMap[name].get();
+}

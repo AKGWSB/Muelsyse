@@ -81,6 +81,10 @@ void Editor::Init(int w, int h, HWND hwnd)
 
     // load scene
     scene->LoadFromFile("Asset/roost_scene.json");
+
+    // 
+    resourceViewer = std::make_unique<ResourceViewer>();
+    resourceViewer->Init();
 }
 
 void Editor::PreGUI()
@@ -220,7 +224,7 @@ void Editor::RenderGUI()
                 ImGui::Text(currencSelectedActor->mesh->name.c_str());
                 if (ImGui::Button("select mesh"))
                 {
-
+                    
                 }
                 ImGui::TreePop();
             }
@@ -251,15 +255,24 @@ void Editor::RenderGUI()
                 {
                     for (auto& p : currencSelectedActor->material->textures)
                     {
-                        auto texName = p.first;
+                        auto varname = p.first;     // texture name in shader, eg: _mainTex
                         auto tex = p.second;
 
                         auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
-                        ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128));
+                        ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
                         ImGui::Text(tex->name.c_str());
+
                         if (ImGui::Button("select texture"))
                         {
+                            resourceViewer->Open();
+                            
+                        }
 
+                        // change tex
+                        if (resourceViewer->isSelect)
+                        {
+                            auto filepath = resourceViewer->selectResourceName; // texture's path
+                            currencSelectedActor->material->textures[varname] = Texture2D::Find(filepath);
                         }
                     }
 
@@ -324,7 +337,6 @@ void Editor::RenderGUI()
 
 
     // show depth
-    if (show_depth_tex)
     {
         ImGui::Begin("DirectX12 Texture Test");
         ImGui::Text("CPU handle = %p", depthTex->srvCpuHandle);
@@ -341,4 +353,9 @@ void Editor::RenderGUI()
         ImGui::Image((ImTextureID)hdptr, ImVec2(w, h));
         ImGui::End();
     }
+    
+
+    // show viewer
+    resourceViewer->RenderUI();
+    
 }

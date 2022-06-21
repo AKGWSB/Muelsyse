@@ -15,6 +15,7 @@ public:
 	Shader* shader;
 
 	// varname --> tex
+	// varname is for texture name in shader, eg: _mainTex
 	std::map<std::string, Texture2D*> textures;
 
 	Material();

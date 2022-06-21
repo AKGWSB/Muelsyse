@@ -26,6 +26,7 @@
     <ClCompile Include="Core\Win32App.cpp" />
     <ClCompile Include="Editor\Actor.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
+    <ClCompile Include="Editor\ResourceViewer.cpp" />
     <ClCompile Include="Editor\Scene.cpp" />
     <ClCompile Include="Library\imgui\imgui.cpp" />
     <ClCompile Include="Library\imgui\imgui_demo.cpp" />
@@ -58,6 +59,7 @@
     <ClInclude Include="Core\Win32App.h" />
     <ClInclude Include="Editor\Actor.h" />
     <ClInclude Include="Editor\Editor.h" />
+    <ClInclude Include="Editor\ResourceViewer.h" />
     <ClInclude Include="Editor\Scene.h" />
     <ClInclude Include="Library\imgui\imconfig.h" />
     <ClInclude Include="Library\imgui\imgui.h" />
@@ -180,6 +182,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

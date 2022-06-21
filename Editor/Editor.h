@@ -2,10 +2,13 @@
 
 #include <wrl.h>
 #include <d3d12.h>
+
 #include "../Core/d3dx12.h"
 #include "../Rendering/DepthTexture.h"
 #include "../Rendering/RenderPass.h"
+
 #include "Scene.h"
+#include "ResourceViewer.h"
 
 #include "../Library/imgui/imgui.h"
 #include "../Library/imgui/imgui_impl_win32.h"
@@ -32,9 +35,8 @@ public:
 	std::unique_ptr<RenderPass> emptyRenderPass;	// set render target to screen use a empty "RenderPass" class
 	Texture2D* RT_final;
 	Texture2D* depthTex;
-	bool show_depth_tex = true;
-	bool show_demo_window = false;
-	bool show_another_window = false;
+
+	std::unique_ptr<ResourceViewer> resourceViewer;
 
 	Editor();
 	~Editor();
