@@ -15,6 +15,7 @@ class Scene
 {
 public:
 	std::string name;
+	std::string filepath;
 	std::vector<std::unique_ptr<Actor>> actors;
 
 	// resource pool
@@ -29,5 +30,5 @@ public:
 	void LoadFromFile(std::string filepath);
 
 	// save scene
-	void SaveToFile(std::string filepath);
+	void SaveToFile();
 };

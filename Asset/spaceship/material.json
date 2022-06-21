@@ -1,14 +1,1 @@
-{
-    "shader" : "Shaders/unlit.hlsl",
-    "textures" : 
-    [
-        {
-            "name" : "mainTex",
-            "path" : "Asset/spaceship/StarSparrow_Red.png"
-        },
-        {
-            "name" : "normal",
-            "path" : "Asset/spaceship/StarSparrow_Normal.png"
-        }
-    ]
-}
+{"shader":"Shaders/unlit.hlsl","textures":[{"name":"mainTex","path":"Asset/spaceship/StarSparrow_Red.png"},{"name":"normal","path":"Asset/spaceship/StarSparrow_Normal.png"}]}

@@ -138,11 +138,35 @@ void Editor::RenderGUI()
 
         ImGui::Begin("Scene", 0, window_flags);
 
-        if (ImGui::CollapsingHeader("Help"))
+        //if (ImGui::CollapsingHeader("Help")){}
+
         {
+            if (ImGui::Button("New"))
+            {
+
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load"))
+            {
+
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Save"))
+            {
+                scene->SaveToFile();
+            }
+        }
+
+        // name
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+        if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text(scene->name.c_str());
+            ImGui::TreePop();
         }
 
         // cameras
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
         if (ImGui::TreeNodeEx("Camera list", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Text("mainCamera");
@@ -153,19 +177,30 @@ void Editor::RenderGUI()
         ImGui::Dummy(ImVec2(0.0f, 10.0f));
         if (ImGui::TreeNodeEx("Actors list", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // show all actors in scene
+            std::vector<std::string> items;
+
+            // collect names
             for (auto& actor : scene->actors)
             {
-                ImVec2 reg = ImGui::GetContentRegionAvail();
-                ImGui::PushItemWidth(reg.x);
+                items.push_back(actor->name);
+            }
 
-                //ImGui::Text("%s", actor->name.c_str());
-                if (ImGui::Button(actor->name.c_str(), ImVec2(reg.x, 30.0f)))
+            if (ImGui::BeginListBox("##listbox 2", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+            {
+                for (int i = 0; i < items.size(); i++)
                 {
-                    currencSelectedActor = actor.get();
+                    const bool is_selected = (actor_item_current_idx == i);
+                    if (ImGui::Selectable(items[i].c_str(), is_selected)) {
+                        actor_item_current_idx = i;
+                    }
+                    // set choosen actor
+                    if (is_selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                        currencSelectedActor = scene->actors[actor_item_current_idx].get();
+                    } 
                 }
-
-                ImGui::PopItemWidth();
+                ImGui::EndListBox();
             }
 
             ImGui::TreePop();

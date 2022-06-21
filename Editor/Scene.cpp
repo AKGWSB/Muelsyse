@@ -31,6 +31,8 @@ std::vector<Actor*> Scene::GetRenderObjects()
 // load scene
 void Scene::LoadFromFile(std::string filepath)
 {
+	this->filepath = filepath;
+
 	// 以读模式打开文件
 	std::ifstream in(filepath);
 	std::ostringstream tmp;
@@ -41,6 +43,8 @@ void Scene::LoadFromFile(std::string filepath)
 
 	// load
 	Json json_obj = Json::parse(json_data, err_msg);
+
+	name = json_obj["name"].string_value();
 
 	auto j_actors = json_obj["actors"].array_items();
 	for (auto& actor : j_actors)
@@ -73,7 +77,54 @@ void Scene::LoadFromFile(std::string filepath)
 	in.close();
 }
 
-void SaveToFile(std::string filepath)
+void Scene::SaveToFile()
 {
+	std::string j_str = "{\"name\":\"" + name + "\",  \"actors\" :  [";
 
+	std::vector<Json> j_actors;
+
+	for (auto& actor : actors)
+	{
+		// save actor
+		Json actor_json_obj = Json::object{
+			{ "name", actor->name },
+			{ "mesh", actor->mesh->name },
+			{ "material", actor->material->name },
+			{ "position", Json::array {actor->transform.position.x, actor->transform.position.y, actor->transform.position.z} },
+			{ "rotation", Json::array {actor->transform.rotation.x, actor->transform.rotation.y, actor->transform.rotation.z} },
+			{ "scale", Json::array {actor->transform.scale.x, actor->transform.scale.y, actor->transform.scale.z} },
+		};
+
+		std::string j_a;
+		actor_json_obj.dump(j_a);
+		j_str += j_a + ",";
+
+		// save material
+		std::string mj_str = "{";
+		mj_str += "\"shader\":\"" + actor->material->shader->name +"\",";
+		mj_str += "\"textures\":[";
+		for (auto& tp : actor->material->textures)
+		{
+			auto& tex_varname = tp.first;
+			auto& tex_filepath = tp.second->name;
+			mj_str += "{\"name\":\"" + tex_varname + "\",\"path\":\"" + tex_filepath + "\"},";
+		}
+		mj_str.erase(mj_str.end() - 1);	// remove last ','
+		mj_str += "]}";
+
+		// write
+		std::ofstream out(actor->material->name);
+		out << mj_str;
+		out.close();
+	}
+
+	j_str.erase(j_str.end() - 1);	// remove last ','
+
+	j_str += "]}";
+
+
+	// write
+	std::ofstream out(filepath);
+	out << j_str;
+	out.close();
 }

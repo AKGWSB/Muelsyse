@@ -32,7 +32,6 @@ public:
 	std::string bindButtonName;		
 
 	std::string selectResourceName;
-	std::function<void(std::string)> callBack;
 
 	ResourceViewer();
 	~ResourceViewer();

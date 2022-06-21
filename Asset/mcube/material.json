@@ -1,10 +1,1 @@
-{
-    "shader" : "Shaders/unlit.hlsl",
-    "textures" : 
-    [
-        {
-            "name" : "mainTex",
-            "path" : "Asset/mcube/mcube.png"
-        }
-    ]
-}
+{"shader":"Shaders/unlit.hlsl","textures":[{"name":"mainTex","path":"Asset/mcube/mcube.png"}]}

@@ -21,6 +21,7 @@ class Editor
 public:
 	int g_width;
 	int g_height;
+	int actor_item_current_idx = 0;	// current select actor
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvCpuHandle;		// cpu handle for srv descriptor
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle;		// gpu handle for srv descriptor
