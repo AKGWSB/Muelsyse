@@ -3,6 +3,7 @@
 #include "../Core/helper.h"
 #include "../Core/GraphicContex.h"
 
+
 Editor::Editor()
 {
 
@@ -239,14 +240,16 @@ void Editor::RenderGUI()
                 Transform& t = currencSelectedActor->transform;
                 
                 float u[3] = { t.position.x, t.position.y, t.position.z };
+                float v[3] = { t.rotation.x, t.rotation.y, t.rotation.z };
+                float w[3] = { t.scale.x, t.scale.y, t.scale.z };
+
+                /**/
                 ImGui::InputFloat3("position", u, "%.1f");
                 t.position = XMFLOAT3(u[0], u[1], u[2]);
 
-                float v[3] = { t.rotation.x, t.rotation.y, t.rotation.z };
                 ImGui::InputFloat3("rotation", v, "%.1f");
                 t.rotation = XMFLOAT3(v[0], v[1], v[2]);
-                
-                float w[3] = { t.scale.x, t.scale.y, t.scale.z };
+
                 ImGui::InputFloat3("scale", w, "%.1f");
                 t.scale = XMFLOAT3(w[0], w[1], w[2]);
 

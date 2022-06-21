@@ -25,7 +25,7 @@ RenderTexture::RenderTexture(int _width, int _height, DXGI_FORMAT _format) :
 
 RenderTexture::~RenderTexture()
 {
-	//GraphicContex::g_rtvHeap->FreeDescriptor(rtvHandleIndex);
+	GraphicContex::g_rtvHeap->FreeDescriptor(rtvHandleIndex);
 }
 
 void RenderTexture::ChangeToRenderTargetState()
@@ -49,4 +49,18 @@ RenderTexture* RenderTexture::Find(std::string name)
 		return NULL;
 	}
 	return g_renderTextureResourceMap[name].get();
+}
+
+RenderTexture* RenderTexture::Create(std::string name, int _width, int _height, DXGI_FORMAT _format)
+{
+	g_renderTextureResourceMap[name] = std::make_unique<RenderTexture>(_width, _height, _format);
+	return g_renderTextureResourceMap[name].get();
+}
+
+void RenderTexture::FreeAll()
+{
+	for (auto& p : g_renderTextureResourceMap)
+	{
+		delete p.second.release();
+	}
 }

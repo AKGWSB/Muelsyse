@@ -280,3 +280,11 @@ Shader* Shader::Find(std::string filepath)
     }
     return g_shaderResourceMap[filepath].get();
 }
+
+void Shader::FreeAll()
+{
+    for (auto& p : g_shaderResourceMap)
+    {
+        delete p.second.release();
+    }
+}

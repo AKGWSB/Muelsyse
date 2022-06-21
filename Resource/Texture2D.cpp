@@ -88,8 +88,8 @@ Texture2D::Texture2D(std::string filepath)
 
 Texture2D::~Texture2D()
 {
-    //GraphicContex::g_srvHeap->FreeDescriptor(srvHandleIndex);
-    //GraphicContex::g_splHeap->FreeDescriptor(samplerHandleIndex);
+    GraphicContex::g_srvHeap->FreeDescriptor(srvHandleIndex);
+    GraphicContex::g_splHeap->FreeDescriptor(samplerHandleIndex);
 }
 
 void Texture2D::LoadFromFile(std::string filepath)
@@ -233,4 +233,12 @@ Texture2D* Texture2D::Find(std::string filepath)
         g_textureResourceMap[filepath] = std::make_unique<Texture2D>(filepath);
     }
     return g_textureResourceMap[filepath].get();
+}
+
+void Texture2D::FreeAll()
+{
+    for (auto& p : g_textureResourceMap)
+    {
+        delete p.second.release();
+    }
 }

@@ -34,5 +34,5 @@ public:
 	// global resource pool, find by filename
 	static std::map<std::string, std::unique_ptr<Texture2D>> g_textureResourceMap;
 	static Texture2D* Find(std::string filepath);
-
+	static void FreeAll();
 };

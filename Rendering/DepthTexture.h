@@ -11,4 +11,10 @@ public:
 
 	DepthTexture(int _width, int _height);
 	~DepthTexture();
+
+	// global resource pool, find by name
+	static std::map<std::string, std::unique_ptr<DepthTexture>> g_depthTextureResourceMap;
+	static DepthTexture* Create(std::string name, int _width, int _height);
+	static DepthTexture* Find(std::string name);
+	static void FreeAll();
 };

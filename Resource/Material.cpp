@@ -67,3 +67,11 @@ Material* Material::Find(std::string filepath)
     }
     return g_materialResourceMap[filepath].get();
 }
+
+void Material::FreeAll()
+{
+	for (auto& p : g_materialResourceMap)
+	{
+		delete p.second.release();
+	}
+}

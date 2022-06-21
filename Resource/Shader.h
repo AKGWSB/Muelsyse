@@ -62,4 +62,5 @@ public:
 	// global resource pool, find by filename
 	static std::map<std::string, std::unique_ptr<Shader>> g_shaderResourceMap;
 	static Shader* Find(std::string filepath);
+	static void FreeAll();
 };

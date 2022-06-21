@@ -14,16 +14,13 @@
 // App resources.
 Camera* camera;
 
-std::unique_ptr<RenderTexture> RT_basePass;
-std::unique_ptr<DepthTexture> RT_basePassDepth;
-std::unique_ptr<RenderTexture> RT_final;
+RenderTexture* RT_basePass;
+RenderTexture* RT_final;
+DepthTexture* RT_basePassDepth;
 
 std::unique_ptr<RenderPass> basePass;
 std::unique_ptr<RenderPass> finalPass;
 
-/*
-std::unique_ptr<Actor> A_spaceship;
-std::unique_ptr<Actor> A_cube;*/
 std::unique_ptr<Actor> A_quad;
 
 std::unique_ptr<Editor> editor;
@@ -49,20 +46,20 @@ void Engine::OnInit()
     camera->SetTarget(XMFLOAT3(0, 0, 0));
 
     // create rt
-    RT_basePass = std::make_unique<RenderTexture>(g_width, g_height, DXGI_FORMAT_R32G32B32A32_FLOAT);
-    RT_basePassDepth = std::make_unique<DepthTexture>(g_width, g_height);
-    RT_final = std::make_unique<RenderTexture>(g_width, g_height, DXGI_FORMAT_R8G8B8A8_UNORM);
+    RenderTexture* RT_basePass = RenderTexture::Create("RT_basePass", g_width, g_height, DXGI_FORMAT_R32G32B32A32_FLOAT);
+    RenderTexture* RT_final = RenderTexture::Create("RT_final", g_width, g_height, DXGI_FORMAT_R8G8B8A8_UNORM);
+    DepthTexture* RT_basePassDepth = DepthTexture::Create("DT_basePass", g_width, g_height);
 
     // create custom pass
     {
         basePass = std::make_unique<RenderPass>();
-        basePass->renderTargets = { RT_basePass.get() };
-        basePass->depthTex = RT_basePassDepth.get();
+        basePass->renderTargets = { RT_basePass };
+        basePass->depthTex = RT_basePassDepth;
 
         finalPass = std::make_unique<RenderPass>();
-        finalPass->renderTargets = { RT_final.get() };
-        finalPass->sourceTextures["mainTex"] = RT_basePass.get();
-        finalPass->sourceTextures["depthTex"] = RT_basePassDepth.get();
+        finalPass->renderTargets = { RT_final };
+        finalPass->sourceTextures["mainTex"] = RT_basePass;
+        finalPass->sourceTextures["depthTex"] = RT_basePassDepth;
     }
     
     // create actors
@@ -80,8 +77,8 @@ void Engine::OnInit()
     {
         editor = std::make_unique<Editor>();
 
-        editor->depthTex = RT_basePassDepth.get();
-        editor->RT_final = RT_final.get();
+        editor->depthTex = RT_basePassDepth;
+        editor->RT_final = RT_final;
 
         editor->scene = scene.get();
 
@@ -118,6 +115,18 @@ void Engine::OnRender()
 
 void Engine::OnDestroy()
 {
+    // aotu save
+    scene->SaveToFile();
+
+    // release galobal resource
+    RenderTexture::FreeAll();
+    DepthTexture::FreeAll();
+    Texture2D::FreeAll();
+    Shader::FreeAll();
+    Material::FreeAll();
+    Mesh::FreeAll();
+
+    // release pipeline
 	GraphicContex::Destory();
 }
 

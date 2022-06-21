@@ -167,3 +167,11 @@ Mesh* Mesh::Find(std::string filepath)
     }
     return g_meshResourceMap[filepath].get();
 }
+
+void Mesh::FreeAll()
+{
+	for (auto& p : g_meshResourceMap)
+	{
+		delete p.second.release();
+	}
+}

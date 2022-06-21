@@ -34,4 +34,5 @@ public:
 	// global resource pool, find by filename
 	static std::map<std::string, std::unique_ptr<Mesh>> g_meshResourceMap;
 	static Mesh* Find(std::string filepath);
+	static void FreeAll();
 };

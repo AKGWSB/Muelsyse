@@ -27,4 +27,5 @@ public:
 	// global resource pool, find by filename
 	static std::map<std::string, std::unique_ptr<Material>> g_materialResourceMap;
 	static Material* Find(std::string filepath);
+	static void FreeAll();
 };
