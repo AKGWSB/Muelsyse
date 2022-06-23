@@ -86,6 +86,9 @@ void Editor::Init(int w, int h, HWND hwnd)
     // 
     resourceViewer = std::make_unique<ResourceViewer>();
     resourceViewer->Init();
+
+    //
+    graphicEditor = std::make_unique<GraphEditor>();
 }
 
 void Editor::PreGUI()
@@ -400,4 +403,6 @@ void Editor::RenderGUI()
     // show viewer
     resourceViewer->RenderUI();
     
+    //
+    graphicEditor->RenderUI();
 }

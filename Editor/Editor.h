@@ -9,6 +9,7 @@
 
 #include "Scene.h"
 #include "ResourceViewer.h"
+#include "GraphEditor.h"
 
 #include "../Library/imgui/imgui.h"
 #include "../Library/imgui/imgui_impl_win32.h"
@@ -38,6 +39,7 @@ public:
 	Texture2D* depthTex;
 
 	std::unique_ptr<ResourceViewer> resourceViewer;
+	std::unique_ptr<GraphEditor> graphicEditor;
 
 	Editor();
 	~Editor();

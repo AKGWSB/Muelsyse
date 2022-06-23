@@ -26,6 +26,7 @@
     <ClCompile Include="Core\Win32App.cpp" />
     <ClCompile Include="Editor\Actor.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
+    <ClCompile Include="Editor\GraphEditor.cpp" />
     <ClCompile Include="Editor\ResourceViewer.cpp" />
     <ClCompile Include="Editor\Scene.cpp" />
     <ClCompile Include="Library\imgui\imgui.cpp" />
@@ -35,6 +36,7 @@
     <ClCompile Include="Library\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="Library\imgui\imgui_tables.cpp" />
     <ClCompile Include="Library\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Library\imgui\imnodes.cpp" />
     <ClCompile Include="Library\json11\json11.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
@@ -59,6 +61,7 @@
     <ClInclude Include="Core\Win32App.h" />
     <ClInclude Include="Editor\Actor.h" />
     <ClInclude Include="Editor\Editor.h" />
+    <ClInclude Include="Editor\GraphEditor.h" />
     <ClInclude Include="Editor\ResourceViewer.h" />
     <ClInclude Include="Editor\Scene.h" />
     <ClInclude Include="Library\imgui\imconfig.h" />
@@ -66,6 +69,8 @@
     <ClInclude Include="Library\imgui\imgui_impl_dx12.h" />
     <ClInclude Include="Library\imgui\imgui_impl_win32.h" />
     <ClInclude Include="Library\imgui\imgui_internal.h" />
+    <ClInclude Include="Library\imgui\imnodes.h" />
+    <ClInclude Include="Library\imgui\imnodes_internal.h" />
     <ClInclude Include="Library\imgui\imstb_rectpack.h" />
     <ClInclude Include="Library\imgui\imstb_textedit.h" />
     <ClInclude Include="Library\imgui\imstb_truetype.h" />
