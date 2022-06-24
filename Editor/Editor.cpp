@@ -3,6 +3,7 @@
 #include "../Core/helper.h"
 #include "../Core/GraphicContex.h"
 
+#include "ResourceViewer.h"
 
 Editor::Editor()
 {
@@ -84,11 +85,11 @@ void Editor::Init(int w, int h, HWND hwnd)
     scene->LoadFromFile("Asset/roost_scene.json");
 
     // 
-    resourceViewer = std::make_unique<ResourceViewer>();
-    resourceViewer->Init();
+    ResourceViewer::Init();
 
     //
     graphicEditor = std::make_unique<GraphEditor>();
+    graphicEditor->Init();
 }
 
 void Editor::PreGUI()
@@ -308,15 +309,14 @@ void Editor::RenderGUI()
                         std::string buttonName = "select a texture for " + varname;
                         if (ImGui::Button(buttonName.c_str()))
                         {
-                            resourceViewer->Open(buttonName);
+                            ResourceViewer::Open(buttonName);
                         }
                         ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
                         // change tex
                         std::string filepath;
-                        if (resourceViewer->GetSelectResourceName(filepath, buttonName))
+                        if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
                         {
-                            auto filepath = resourceViewer->selectResourceName; // texture's path
                             currencSelectedActor->material->textures[varname] = Texture2D::Find(filepath);
                         }   
                     }
@@ -401,8 +401,13 @@ void Editor::RenderGUI()
     
 
     // show viewer
-    resourceViewer->RenderUI();
+    ResourceViewer::RenderUI();
     
     //
     graphicEditor->RenderUI();
+}
+
+void Editor::OpenResourceViewer(std::string buttonName)
+{
+    ResourceViewer::Open(buttonName);
 }

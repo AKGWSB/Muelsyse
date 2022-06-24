@@ -7,6 +7,16 @@
 
 using std::filesystem::recursive_directory_iterator;
 
+
+std::map<std::string, Texture2D*> ResourceViewer::textureViewMap;
+std::map<std::string, Texture2D*> ResourceViewer::renderTextureViewMap;
+std::map<std::string, RenderTexture*> ResourceViewer::meshViewMap;
+std::map<std::string, RenderTexture*> ResourceViewer::materialViewMap;
+bool ResourceViewer::isOpen = false;
+bool ResourceViewer::isSelect = false;
+std::string ResourceViewer::bindButtonName;
+std::string ResourceViewer::selectResourceName;
+
 ResourceViewer::ResourceViewer()
 {
 
@@ -57,33 +67,40 @@ void ResourceViewer::RenderUI()
 {
 	if (isOpen == false) return;
 
-	ImGui::Begin("Resource Viewer", 0, 0);
+	ImGui::OpenPopup("Resource Viewer Pannel");
 
-	for (auto& p : textureViewMap)
+	// Always center this window when appearing
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+	if (ImGui::BeginPopupModal("Resource Viewer Pannel", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		auto& name = p.first;
-		auto& view = p.second;
-
-		ImGui::Text(name.c_str());
-
-		ImTextureID id = (ImTextureID)(D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr);
-
-		ImVec2 size = ImVec2(128.0f, 128.0f);					// Size of the image we want to make visible
-		ImVec2 uv0 = ImVec2(0.0f, 1.0f);                        // UV coordinates for lower-left
-		ImVec2 uv1 = ImVec2(1, 0);								// UV coordinates for (32,32) in our texture
-		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
-		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
-
-		if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
+		for (auto& p : textureViewMap)
 		{
-			isOpen = false;
-			isSelect = true;
-			selectResourceName = name;
-		}
-		ImGui::Dummy(ImVec2(0.0f, 10.0f));
-	}
+			auto& name = p.first;
+			auto& view = p.second;
 
-	ImGui::End();
+			ImGui::Text(name.c_str());
+
+			ImTextureID id = (ImTextureID)(D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr);
+
+			ImVec2 size = ImVec2(64.0f, 64.0f);					// Size of the image we want to make visible
+			ImVec2 uv0 = ImVec2(0.0f, 1.0f);                        // UV coordinates for lower-left
+			ImVec2 uv1 = ImVec2(1, 0);								// UV coordinates for (32,32) in our texture
+			ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
+
+			if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
+			{
+				isOpen = false;
+				isSelect = true;
+				selectResourceName = name;
+			}
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+		}
+
+		ImGui::EndPopup();
+	}
 }
 bool ResourceViewer::GetSelectResourceName(std::string& o_resourceName, std::string buttonName)
 {
@@ -94,7 +111,7 @@ bool ResourceViewer::GetSelectResourceName(std::string& o_resourceName, std::str
 	// check if the caller try to fetch the select resource
 	if (buttonName != bindButtonName) return false;
 
-	buttonName = selectResourceName;
+	o_resourceName = selectResourceName;
 	isSelect = false;
 
 	return true;

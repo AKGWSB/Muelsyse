@@ -9,18 +9,18 @@
 
 class ResourceViewer
 {
-public:
+
 	// name --> view
 	// view tex own by Texture2D and RenderTexture class
-	std::map<std::string, Texture2D*> textureViewMap;
-	std::map<std::string, Texture2D*> renderTextureViewMap;
+	static std::map<std::string, Texture2D*> textureViewMap;
+	static std::map<std::string, Texture2D*> renderTextureViewMap;
 
 	// view tex own by ResourceViewer class
-	std::map<std::string, RenderTexture*> meshViewMap;
-	std::map<std::string, RenderTexture*> materialViewMap;
+	static std::map<std::string, RenderTexture*> meshViewMap;
+	static std::map<std::string, RenderTexture*> materialViewMap;
 
-	bool isOpen = false;
-	bool isSelect = false;
+	static bool isOpen;
+	static bool isSelect;
 
 	// pass a name for fake callback
 	// we have many buttons that can call our "ResourceViewer" to Open
@@ -29,18 +29,19 @@ public:
 	// ImGui is a no block API, each button will query the result in the loop, 
 	// but "ResourceViewer" don't know who is the "caller"
 	// cause ImGUI use name to identify component, so "ResourceViewer" also use name to identify buttons
-	std::string bindButtonName;		
+	static std::string bindButtonName;
 
-	std::string selectResourceName;
+	static std::string selectResourceName;
 
 	ResourceViewer();
 	~ResourceViewer();
 
+public:
 	// load resource from disk
 	// store into g_xxxResourcePool, eg: texture, mesh, material
-	void Init();	
-	void RenderUI();
+	static void Init();	
+	static void RenderUI();
 
-	bool GetSelectResourceName(std::string& o_resourceName, std::string buttonName);
-	void Open(std::string buttonName);
+	static bool GetSelectResourceName(std::string& o_resourceName, std::string buttonName);
+	static void Open(std::string buttonName);
 };

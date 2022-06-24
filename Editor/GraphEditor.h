@@ -5,36 +5,32 @@
 #include <string>
 #include <vector>
 
-class Pin
-{
-public:
-	std::string name;
-	int id;
-};
-
-class Node
-{
-public:
-	std::string name;
-	int id;
-};
+#include "GraphicNode.h"
 
 class GraphEditor
 {
 private:
-	// node name --> node id
 	std::set<int> usedNodeID;
-
-	// attribute name --> attribute id
 	std::set<int> usedPinID;
+
+	// pin id : (start, end)
+	std::vector<std::pair<int, int>> edges;
+	
+	std::vector<RenderPassNode> renderPassNodes;
+	std::vector<BlitPassNode> blitPassNodes;
+	std::vector<TextureNode> textureNodes;
+	std::vector<RenderTextureNode> renderTextureNodes;
 
 public:
 	GraphEditor();
 	~GraphEditor();
 
-	int RegisterNewNode(std::string nodeName);
-	int RegisterNewAttribute(std::string attrName);
+	template <typename T_NODE>
+	T_NODE RegisterNewNode(std::string nodeName);
 
+	Pin RegisterNewPin(std::string pinName);
+
+	void Init();
 	void RenderUI();
 };
 

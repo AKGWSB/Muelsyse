@@ -141,6 +141,9 @@
     <ClCompile Include="Library\imgui\imnodes.cpp">
       <Filter>Library\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\GraphicNode.cpp">
+      <Filter>源文件\Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\d3dx12.h">
@@ -250,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="Library\imgui\imnodes_internal.h">
       <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\GraphicNode.h">
+      <Filter>头文件\Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

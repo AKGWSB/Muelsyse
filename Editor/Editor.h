@@ -8,7 +8,6 @@
 #include "../Rendering/RenderPass.h"
 
 #include "Scene.h"
-#include "ResourceViewer.h"
 #include "GraphEditor.h"
 
 #include "../Library/imgui/imgui.h"
@@ -38,7 +37,6 @@ public:
 	Texture2D* RT_final;
 	Texture2D* depthTex;
 
-	std::unique_ptr<ResourceViewer> resourceViewer;
 	std::unique_ptr<GraphEditor> graphicEditor;
 
 	Editor();
@@ -49,4 +47,5 @@ public:
 	void PostGUI();			// call after render GUI
 	void RenderGUI();		// ..zzz
 
+	void OpenResourceViewer(std::string buttonName);
 };
