@@ -20,5 +20,6 @@ public:
 	static std::map<std::string, std::unique_ptr<RenderTexture>> g_renderTextureResourceMap;
 	static RenderTexture* Create(std::string name, int _width, int _height, DXGI_FORMAT _format);
 	static RenderTexture* Find(std::string name);
+	static std::vector<std::string> GetNameList();
 	static void FreeAll();
 };

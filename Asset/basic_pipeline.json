@@ -1,0 +1,24 @@
+{
+    "nodes" : 
+    [
+        {
+            "type": "RenderPassNode",
+            "name": "BasePass",
+            "resourceName": "None"
+        },
+        {
+            "type": "RenderPassNode",
+            "name": "FinalPass",
+            "resourceName": "None"
+        }
+    ],
+    "edges" : 
+    [
+        {
+            "outNode": "BasePass",
+            "outPin": 0 ,
+            "inNode": "FinalPass",
+            "inPin": 0
+        }
+    ]
+}

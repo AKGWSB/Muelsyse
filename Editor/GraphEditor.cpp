@@ -7,6 +7,9 @@
 
 #include <random>
 
+std::set<int> GraphEditor::usedNodeID;
+std::set<int> GraphEditor::usedPinID;
+
 GraphEditor::GraphEditor()
 {
     ImNodes::CreateContext();
@@ -53,32 +56,44 @@ void GraphEditor::RenderUI()
     }
 
     // render links
+    ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(11, 109, 191, 255));
+    ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 255, 128, 255));
+    ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(81, 148, 204, 255));
     for (int i = 0; i < edges.size(); ++i)
     {
         const std::pair<int, int> p = edges[i];
-        // in this case, we just use the array index of the link
-        // as the unique identifier
-        ImNodes::Link(i, p.first, p.second);
+
+        int start_pin_id = p.first;
+        int end_pin_id = p.second;
+        int link_id = i;
+
+        ImNodes::Link(link_id, start_pin_id, end_pin_id);
     }
+    ImNodes::PopColorStyle();
+    ImNodes::PopColorStyle();
+    ImNodes::PopColorStyle();
 
     ImNodes::EndNodeEditor();
     ImGui::End();
 
-    //check links
-    for (auto start_pin_id : usedPinID)
+    //create links
+    int start_pin_id, end_pin_id;
+    if (ImNodes::IsLinkCreated(&start_pin_id, &end_pin_id))
     {
-        for (auto end_pin_id : usedPinID)
-        {
-            if (start_pin_id == end_pin_id) continue;
-
-            // query if connection
-            if (ImNodes::IsLinkCreated(&start_pin_id, &end_pin_id))
-            {
-                edges.push_back(std::make_pair(start_pin_id, end_pin_id));
-            }
-        }
+        edges.push_back(std::make_pair(start_pin_id, end_pin_id));
     }
 
+    // delete links
+    int hovered_link_id;
+    if (ImNodes::IsLinkHovered(&hovered_link_id))
+    {
+        ImGui::SetTooltip("Press \"Delete\" To Remove this Link");
+        
+        if (ImGui::IsKeyPressed(ImGuiKey_::ImGuiKey_Delete))
+        {
+            edges.erase(edges.begin() + hovered_link_id);
+        }
+    }
 }
 
 

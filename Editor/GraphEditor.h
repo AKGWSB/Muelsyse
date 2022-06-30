@@ -10,8 +10,8 @@
 class GraphEditor
 {
 private:
-	std::set<int> usedNodeID;
-	std::set<int> usedPinID;
+	static std::set<int> usedNodeID;
+	static std::set<int> usedPinID;
 
 	// pin id : (start, end)
 	std::vector<std::pair<int, int>> edges;
@@ -26,9 +26,9 @@ public:
 	~GraphEditor();
 
 	template <typename T_NODE>
-	T_NODE RegisterNewNode(std::string nodeName);
+	static T_NODE RegisterNewNode(std::string nodeName);
 
-	Pin RegisterNewPin(std::string pinName);
+	static Pin RegisterNewPin(std::string pinName);
 
 	void Init();
 	void RenderUI();

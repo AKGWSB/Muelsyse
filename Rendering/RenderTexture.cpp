@@ -57,6 +57,16 @@ RenderTexture* RenderTexture::Create(std::string name, int _width, int _height, 
 	return g_renderTextureResourceMap[name].get();
 }
 
+std::vector<std::string> RenderTexture::GetNameList()
+{
+	std::vector<std::string> res;
+	for (auto& p : g_renderTextureResourceMap)
+	{
+		res.push_back(p.first);
+	}
+	return res;
+}
+
 void RenderTexture::FreeAll()
 {
 	for (auto& p : g_renderTextureResourceMap)
