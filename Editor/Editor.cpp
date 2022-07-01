@@ -89,7 +89,7 @@ void Editor::Init(int w, int h, HWND hwnd)
 
     //
     graphicEditor = std::make_unique<GraphEditor>();
-    graphicEditor->Init();
+    graphicEditor->LoadFromFile("Asset/e_pipeline.pipeline");
 }
 
 void Editor::PreGUI()

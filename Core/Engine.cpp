@@ -117,6 +117,7 @@ void Engine::OnDestroy()
 {
     // aotu save
     scene->SaveToFile();
+    editor->graphicEditor->SaveToFile();
 
     // release galobal resource
     RenderTexture::FreeAll();

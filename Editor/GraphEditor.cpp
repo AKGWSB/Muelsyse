@@ -7,6 +7,9 @@
 #include "../Library/imgui/imnodes.h"
 
 #include <random>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 // ----------------------------------------------------------------------- //
 
@@ -20,6 +23,15 @@ Pin::Pin(PinType t, std::string n) :
     name(n)
 {
 
+}
+
+Json Pin::to_json() const
+{
+    return Json::object {
+        { "type", type },
+        { "name", name },
+        { "runtimeID", runtimeID }
+    };
 }
 
 // ----------------------------------------------------------------------- //
@@ -52,30 +64,62 @@ void Node::RenderPins()
 
 void Node::Render()
 {
-    ImNodes::BeginNode(runtimeID);
-
     if (type == NodeType::RenderPassNode)
     {
+        ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(75, 120, 25, 255));
+        ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(95, 150, 55, 255));
+        ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(95, 150, 55, 255));
+
+        ImNodes::BeginNode(runtimeID);
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted("Render Pass");
+        ImGui::SameLine();
+        if (ImGui::Button("X"))
+        {
+
+        }
         ImNodes::EndNodeTitleBar();
 
         RenderPins();
+
+        ImNodes::PopColorStyle();
+        ImNodes::PopColorStyle();
+        ImNodes::PopColorStyle();
     }
 
     if (type == NodeType::BlitPassNode)
     {
+        ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(75, 120, 25, 255));
+        ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(95, 150, 55, 255));
+        ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(95, 150, 55, 255));
+
+        ImNodes::BeginNode(runtimeID);
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted("Blit Pass");
+        ImGui::SameLine();
+        if (ImGui::Button("X"))
+        {
+
+        }
         ImNodes::EndNodeTitleBar();
 
         RenderPins();
+
+        ImNodes::PopColorStyle();
+        ImNodes::PopColorStyle();
+        ImNodes::PopColorStyle();
     }
 
     if (type == NodeType::RenderTextureNode)
     {
+        ImNodes::BeginNode(runtimeID);
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted("Render Texture");
+        ImGui::SameLine();
+        if (ImGui::Button("X"))
+        {
+
+        }
         ImNodes::EndNodeTitleBar();
 
         RenderPins();
@@ -109,8 +153,14 @@ void Node::Render()
 
     if (type == NodeType::Texture2DNode)
     {
+        ImNodes::BeginNode(runtimeID);
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted("Texture2D");
+        ImGui::SameLine();
+        if (ImGui::Button("X"))
+        {
+
+        }
         ImNodes::EndNodeTitleBar();
 
         RenderPins();
@@ -141,10 +191,42 @@ void Node::Render()
     ImNodes::EndNode();
 }
 
+Json Node::to_json() const
+{
+    return Json::object{
+        { "type", type },
+        { "name", name },
+        { "runtimeID", runtimeID },
+        { "resourceName", resourceName },
+        { "inputPins", inputPins },
+        { "outputPins", outputPins },
+        { "position", Json::array { position.x, position.y} }
+    };
+}
+
+// ----------------------------------------------------------------------- //
+
+Link::Link()
+{
+
+}
+
+Json Link::to_json() const
+{
+    return Json::object{
+        { "srcNode", srcNode },
+        { "dstNode", dstNode },
+        { "srcPin", srcPin },
+        { "dstPin", dstPin },
+        { "runtimeID", runtimeID }
+    };
+}
+
 // ----------------------------------------------------------------------- //
 
 std::map<int, Node> GraphEditor::nodePool;
 std::map<int, Pin> GraphEditor::pinPool;
+std::vector<Link> GraphEditor::links;
 
 GraphEditor::GraphEditor()
 {
@@ -190,9 +272,17 @@ void GraphEditor::RenderUI()
     ImGui::SetNextWindowBgAlpha(0.35f);
     ImGui::Begin("Pipeline editor");
 
+    std::string cf = "Current Pipeline file: " + filepath;
+    ImGui::Text(cf.c_str());
+
+    if (ImGui::Button("Load Pipeline"))
+    {
+        
+    }
+    ImGui::SameLine();
     if (ImGui::Button("Save Pipeline"))
     {
-        SaveToFile("Asset/e_pipeline.pipeline");
+        SaveToFile();
     }
 
     ImNodes::BeginNodeEditor();
@@ -208,7 +298,7 @@ void GraphEditor::RenderUI()
     // render links
     ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(11, 109, 191, 255));
     ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 255, 128, 255));
-    ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(81, 148, 204, 255));
+    ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 255, 128, 255));
     for (int i = 0; i < links.size(); ++i)
     {
         Link& link = links[i];
@@ -296,13 +386,118 @@ Pin& GraphEditor::GetPinByID(int runtimeID)
     return pinPool[runtimeID];
 }
 
-void GraphEditor::SaveToFile(std::string filepath)
+void GraphEditor::SaveToFile()
 {
-    
+    // write
+    std::ofstream out(filepath);
+    out << to_json().dump();
+    out.close();
 }
 
 void GraphEditor::LoadFromFile(std::string filepath)
 {
+    this->filepath = filepath;
 
+    nodePool.clear();
+    pinPool.clear();
+    links.clear();
+
+    std::ifstream in(filepath);
+    std::ostringstream tmp;
+    tmp << in.rdbuf();
+
+    std::string json_data = tmp.str();
+    std::string err_msg;
+
+    // load
+    Json json_obj = Json::parse(json_data, err_msg);
+
+    // load pins
+    auto& pins = json_obj["pinList"].array_items();
+    for (auto& pin_obj : pins)
+    {
+        Pin pin;
+        pin.name = pin_obj["name"].string_value();
+        pin.runtimeID = pin_obj["runtimeID"].int_value();
+        pin.type = PinType(pin_obj["type"].int_value());
+
+        pinPool[pin.runtimeID] = pin;
+    }
+
+    // load nodes
+    auto& nodes = json_obj["nodeList"].array_items();
+    for (auto& node_obj : nodes)
+    {
+        Node node;
+        node.name = node_obj["name"].string_value();
+        node.runtimeID = node_obj["runtimeID"].int_value();
+        node.type = NodeType(node_obj["type"].int_value());
+        node.resourceName = node_obj["resourceName"].string_value();
+
+        // input pin's id list
+        auto& in_pins = node_obj["inputPins"].array_items();
+        for (auto& in_pin_obj : in_pins)
+        {
+            node.inputPins.push_back(in_pin_obj.int_value());
+        }
+
+        // output pin's id list
+        auto& out_pins = node_obj["outputPins"].array_items();
+        for (auto& out_pin_obj : out_pins)
+        {
+            node.outputPins.push_back(out_pin_obj.int_value());
+        }
+
+        // set position
+        auto& pos_obj = node_obj["position"].array_items();
+        ImVec2 pos(pos_obj[0].int_value(), pos_obj[1].int_value());
+        ImNodes::SetNodeEditorSpacePos(node.runtimeID, pos);
+
+        nodePool[node.runtimeID] = node;
+    }
+
+    // load links
+    auto& j_links = json_obj["links"].array_items();
+    for (auto& link_obj : j_links)
+    {
+        Link link;
+        link.runtimeID = link_obj["runtimeID"].int_value();
+        link.dstNode = link_obj["dstNode"].int_value();
+        link.dstPin = link_obj["dstPin"].int_value();
+        link.srcNode = link_obj["srcNode"].int_value();
+        link.srcPin = link_obj["srcPin"].int_value();
+
+        links.push_back(link);
+    }
+}
+
+void GraphEditor::Execute()
+{
+
+}
+
+Json GraphEditor::to_json() const
+{
+    std::vector<Node> nodeList;
+    for (auto& p : nodePool)
+    {
+        int id = p.first;
+        Node& node = p.second;
+
+        node.position = ImNodes::GetNodeEditorSpacePos(id);
+        nodeList.push_back(node);
+    }
+
+    std::vector<Pin> pinList;
+    for (auto& p : pinPool)
+    {
+        pinList.push_back(p.second);
+    }
+
+    return Json::object{
+        { "links", links },
+        { "nodeList", nodeList },
+        { "pinList", pinList}
+    };
 }
 

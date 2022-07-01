@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+#include "../Library/json11/json11.hpp"
+#include "../Library/imgui/imgui.h"
+
+using namespace json11;
+
 // ----------------------------------------------------------------------- //
 
 enum PinType
@@ -26,6 +31,8 @@ public:
 
 	Pin();
 	Pin(PinType t, std::string n);
+
+	Json to_json() const;
 };
 
 // ----------------------------------------------------------------------- //
@@ -43,6 +50,7 @@ class Node
 {
 public:
 	NodeType type;
+	ImVec2 position;
 
 	// the resource held by node
 	// maybe a Texture2D, RenderTexture or ...
@@ -63,6 +71,8 @@ public:
 
 	// render depends on node's type
 	void Render();
+
+	Json to_json() const;
 };
 
 // ----------------------------------------------------------------------- //
@@ -78,6 +88,9 @@ public:
 
 	// link's id, register while runtime
 	int runtimeID;
+
+	Link();
+	Json to_json() const;
 };
 
 // ----------------------------------------------------------------------- //
@@ -85,11 +98,14 @@ public:
 class GraphEditor
 {
 private:
-	// find by runtimeID
+	// find by runtimeID, which represent "pointer" to Node or Pin
+	// using int, not c++ pointer, just convenience for json dump
 	static std::map<int, Node> nodePool;
 	static std::map<int, Pin> pinPool;
+	static std::vector<Link> links;
 
-	std::vector<Link> links;
+	// current open pipeline file's path
+	std::string filepath;
 
 public:
 	GraphEditor();
@@ -102,7 +118,12 @@ public:
 
 	void Init();
 	void RenderUI();
-	void SaveToFile(std::string filepath);
+	void SaveToFile();
 	void LoadFromFile(std::string filepath);
+
+	// "compile" the pipeline and generate render pass
+	void Execute();
+
+	Json to_json() const;
 };
 
