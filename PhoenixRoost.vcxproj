@@ -27,6 +27,7 @@
     <ClCompile Include="Editor\Actor.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GraphEditor.cpp" />
+    <ClCompile Include="Editor\GraphNode.cpp" />
     <ClCompile Include="Editor\ResourceViewer.cpp" />
     <ClCompile Include="Editor\Scene.cpp" />
     <ClCompile Include="Library\imgui\imgui.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="Editor\Actor.h" />
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\GraphEditor.h" />
+    <ClInclude Include="Editor\GraphNode.h" />
     <ClInclude Include="Editor\ResourceViewer.h" />
     <ClInclude Include="Editor\Scene.h" />
     <ClInclude Include="Library\imgui\imconfig.h" />
