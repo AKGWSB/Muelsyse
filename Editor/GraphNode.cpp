@@ -84,6 +84,18 @@ void Node::Render()
 
         RenderPins();
 
+        // viewport
+        {
+            Json j_nodeDesc = GraphEditor::GetNodeDescriptorByID(runtimeID);
+
+            auto& vparr = j_nodeDesc["viewPort"].array_items();
+            ImVec4 vp = ImVec4(vparr[0].int_value(), vparr[1].int_value(), vparr[2].int_value(), vparr[3].int_value());
+
+            ImGui::Text("ViewPort");
+            ImGui::Text("%d %d", vp.x, vp.y);
+            ImGui::Text("%d %d", vp.z, vp.w);
+        }
+
         ImNodes::PopColorStyle();
         ImNodes::PopColorStyle();
         ImNodes::PopColorStyle();
@@ -130,30 +142,6 @@ void Node::Render()
 
         RenderPins();
 
-        // convert to char* array
-        std::vector<std::string> renderTextureList = RenderTexture::GetNameList();
-        renderTextureList.insert(renderTextureList.begin(), "None");
-        int n_rt = renderTextureList.size();
-        std::vector<const char*> chars;
-        for (auto& s : renderTextureList)
-        {
-            chars.push_back(s.c_str());
-        }
-        // draw select box
-        static int rtNodeSelectIndex = 0;
-        ImGui::PushItemWidth(128.0f);
-        ImGui::Combo("##rt_combo", &rtNodeSelectIndex, chars.data(), n_rt);
-        ImGui::PopItemWidth();
-        resourceName = renderTextureList[rtNodeSelectIndex];
-
-        // not select
-        if (resourceName != "None")
-        {
-            Texture2D* tex = RenderTexture::Find(resourceName);
-            auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
-            ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
-        }
-
         ImGui::Dummy(ImVec2(0.0f, 10.0f));
         ImNodes::EndNode();
     }
@@ -172,15 +160,8 @@ void Node::Render()
 
         RenderPins();
 
-        // not select
-        if (resourceName.length() != 0)
-        {
-            Texture2D* tex = Texture2D::Find(resourceName);
-            auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
-            ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
-        }
-
         // button
+        /*
         std::string buttonName = "select texture";
         std::string buttonID = buttonName + std::to_string(runtimeID); // identifier
         if (ImGui::Button(buttonName.c_str()))
@@ -188,13 +169,29 @@ void Node::Render()
             ResourceViewer::Open(buttonID.c_str());
         }
         ResourceViewer::GetSelectResourceName(resourceName, buttonID);
+        */
 
         ImNodes::EndNode();
     }
 
     if (type == NodeType::ScreenTargetNode)
     {
+        ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(125, 75, 25, 255));
+        ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 95, 55, 255));
+        ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 95, 55, 255));
 
+        ImNodes::BeginNode(runtimeID);
+        ImNodes::BeginNodeTitleBar();
+        ImGui::TextUnformatted("Screen");
+        ImNodes::EndNodeTitleBar();
+
+        RenderPins();
+
+        ImNodes::PopColorStyle();
+        ImNodes::PopColorStyle();
+        ImNodes::PopColorStyle();
+
+        ImNodes::EndNode();
     }
 }
 
@@ -204,7 +201,6 @@ Json Node::to_json() const
         { "type", type },
         { "name", name },
         { "runtimeID", runtimeID },
-        { "resourceName", resourceName },
         { "inputPins", inputPins },
         { "outputPins", outputPins },
         { "position", Json::array { position.x, position.y} }
@@ -221,10 +217,10 @@ Link::Link()
 Json Link::to_json() const
 {
     return Json::object{
-        { "srcNode", srcNode },
-        { "dstNode", dstNode },
-        { "srcPin", srcPin },
-        { "dstPin", dstPin },
+        { "node1_ID", node1_ID },
+        { "pin1_ID", pin1_ID },
+        { "node2_ID", node2_ID },
+        { "pin2_ID", pin2_ID },
         { "runtimeID", runtimeID }
     };
 }

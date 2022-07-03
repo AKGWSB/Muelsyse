@@ -47,7 +47,7 @@ void Engine::OnInit()
 
     // create rt
     RenderTexture* RT_basePass = RenderTexture::Create("RT_basePass", g_width, g_height, DXGI_FORMAT_R32G32B32A32_FLOAT);
-    RenderTexture* RT_final = RenderTexture::Create("RT_final", g_width, g_height, DXGI_FORMAT_R8G8B8A8_UNORM);
+    RenderTexture* RT_final = RenderTexture::Create("RT_Screen", g_width, g_height, DXGI_FORMAT_R8G8B8A8_UNORM);
     DepthTexture* RT_basePassDepth = DepthTexture::Create("DT_basePass", g_width, g_height);
 
     // create custom pass

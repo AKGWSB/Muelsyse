@@ -11,7 +11,7 @@
 #include <iostream>
 #include <sstream>
 
-
+std::map<int, Json> GraphEditor::nodeDescriptorPool;
 std::map<int, Node> GraphEditor::nodePool;
 std::map<int, Pin> GraphEditor::pinPool;
 std::vector<Link> GraphEditor::links;
@@ -31,40 +31,80 @@ void GraphEditor::AddNode(NodeType type)
 {
     if (type == NodeType::RenderPassNode)
     {
+        // add node
         Node basePassNode;
         basePassNode.type = NodeType::RenderPassNode;
         basePassNode.name = "basePass";
         basePassNode.outputPins = { GraphEditor::RegisterNewPin(Pin(PinType::RenderTargetOutput, "RT_0")) };
-        GraphEditor::RegisterNewNode(basePassNode);
+        int id = GraphEditor::RegisterNewNode(basePassNode);
+
+        // add descriptor
+        nodeDescriptorPool[id] = Json::object {
+            { "nodeID", id },
+            { "viewPort", Json::array { 0, 0, 0, 0 } }
+        };
     }
 
     if (type == NodeType::BlitPassNode)
     {
+        // add node
         Node blitPassNode;
         blitPassNode.type = NodeType::BlitPassNode;
         blitPassNode.name = "blitPass";
         blitPassNode.inputPins = { GraphEditor::RegisterNewPin(Pin(PinType::RenderTargetOutput, "MainTex_0")) };
         blitPassNode.outputPins = { GraphEditor::RegisterNewPin(Pin(PinType::RenderTargetOutput, "RT_0")) };
-        GraphEditor::RegisterNewNode(blitPassNode);
+        int id = GraphEditor::RegisterNewNode(blitPassNode);
+
+        // add descriptor
+        nodeDescriptorPool[id] = Json::object {
+            { "nodeID", id },
+            { "viewPort", Json::array { 0, 0, 0, 0 } },
+            { "shaderName", "None" }
+        };
     }
 
     if (type == NodeType::RenderTextureNode)
     {
+        // add node
         Node rtNode;
         rtNode.type = NodeType::RenderTextureNode;
         rtNode.name = "RT_BasePass";
         rtNode.inputPins = { GraphEditor::RegisterNewPin(Pin(PinType::TextureWrite, "write")) };
         rtNode.outputPins = { GraphEditor::RegisterNewPin(Pin(PinType::TextureRead, "read")) };
-        GraphEditor::RegisterNewNode(rtNode);
+        int id = GraphEditor::RegisterNewNode(rtNode);
+
+        // add descriptor
+        nodeDescriptorPool[id] = Json::object {
+            { "nodeID", id },
+            { "size", Json::array { 0, 0 } },
+            { "format", DXGI_FORMAT_R8G8B8A8_UNORM }
+        };
     }
 
     if (type == NodeType::Texture2DNode)
     {
+        // add node
         Node texNode;
         texNode.type = NodeType::Texture2DNode;
         texNode.name = "Tex_0";
         texNode.outputPins = { GraphEditor::RegisterNewPin(Pin(PinType::TextureRead, "read")) };
-        GraphEditor::RegisterNewNode(texNode);
+        int id = GraphEditor::RegisterNewNode(texNode);
+
+        // add descriptor
+        nodeDescriptorPool[id] = Json::object {
+            { "nodeID", id },
+            { "textureName", "None" }
+        };
+    }
+
+    if (type == NodeType::ScreenTargetNode)
+    {
+        // add node
+        Node node;
+        node.type = NodeType::ScreenTargetNode;
+        node.name = "RT_Screen";
+        node.inputPins = { GraphEditor::RegisterNewPin(Pin(PinType::TextureWrite, "write")) };
+        int id = GraphEditor::RegisterNewNode(node);
     }
 }
 
@@ -89,13 +129,18 @@ void GraphEditor::RemoveNodeRightNow(int node_id)
         relate_pins.insert(pin_id);
         pinPool.erase(pin_id);
     }
+    for (auto& pin_id : node.outputPins)
+    {
+        relate_pins.insert(pin_id);
+        pinPool.erase(pin_id);
+    }
 
     // record relate links
     std::set<int> link_delList;
     for (int i = 0; i < links.size(); i++)
     {
         auto& link = links[i];
-        if (relate_pins.find(link.srcPin) != relate_pins.end() || relate_pins.find(link.dstPin) != relate_pins.end())
+        if (relate_pins.find(link.pin1_ID) != relate_pins.end() || relate_pins.find(link.pin2_ID) != relate_pins.end())
         {
             link_delList.insert(i);
         }
@@ -111,7 +156,9 @@ void GraphEditor::RemoveNodeRightNow(int node_id)
     }
     links = newLinkList;
 
+    // remove node and it's descriptor
     nodePool.erase(node_id);
+    nodeDescriptorPool.erase(node_id);
 }
 
 void GraphEditor::RenderUI()
@@ -185,12 +232,7 @@ void GraphEditor::RenderUI()
     for (int i = 0; i < links.size(); ++i)
     {
         Link& link = links[i];
-
-        int start_pin_id = link.srcPin;
-        int end_pin_id = link.dstPin;
-        int link_id = i;
-
-        ImNodes::Link(link_id, start_pin_id, end_pin_id);
+        ImNodes::Link(i, link.pin1_ID, link.pin2_ID);
     }
     ImNodes::PopColorStyle();
     ImNodes::PopColorStyle();
@@ -202,12 +244,28 @@ void GraphEditor::RenderUI()
 
     /**/
     //create links
-    int start_pin_id, end_pin_id;
-    if (ImNodes::IsLinkCreated(&start_pin_id, &end_pin_id))
+    int pin1_ID, pin2_ID;
+    if (ImNodes::IsLinkCreated(&pin1_ID, &pin2_ID))
     {
         Link newLink;
-        newLink.srcPin = start_pin_id;
-        newLink.dstPin = end_pin_id;
+        newLink.pin1_ID = pin1_ID;
+        newLink.pin2_ID = pin2_ID;
+
+        // find Nodes that this link append to
+        for (auto& p : nodePool)
+        {
+            Node& node = p.second;
+            for (auto& pin_id : node.inputPins)
+            {
+                if (pin_id == pin1_ID) newLink.node1_ID = node.runtimeID;
+                if (pin_id == pin2_ID) newLink.node2_ID = node.runtimeID;
+            }
+            for (auto& pin_id : node.outputPins)
+            {
+                if (pin_id == pin1_ID) newLink.node1_ID = node.runtimeID;
+                if (pin_id == pin2_ID) newLink.node2_ID = node.runtimeID;
+            }
+        }
         links.push_back(newLink);
     }
 
@@ -252,6 +310,24 @@ int GraphEditor::RegisterNewPin(const Pin& pin)
     pinPool[id].runtimeID = id;
 
     return id;
+}
+
+Json& GraphEditor::GetNodeDescriptorByID(int runtimeID)
+{
+    if (nodeDescriptorPool.find(runtimeID) == nodeDescriptorPool.end())
+    {
+        throw std::exception();
+    }
+    return nodeDescriptorPool[runtimeID];
+}
+
+void GraphEditor::SetNodeDescriptorByID(int runtimeID, const Json& json_obj)
+{
+    if (nodeDescriptorPool.find(runtimeID) == nodeDescriptorPool.end())
+    {
+        throw std::exception();
+    }
+    nodeDescriptorPool[runtimeID] = json_obj;
 }
 
 Node& GraphEditor::GetNodeByID(int runtimeID)
@@ -318,7 +394,6 @@ void GraphEditor::LoadFromFile(std::string filepath)
         node.name = node_obj["name"].string_value();
         node.runtimeID = node_obj["runtimeID"].int_value();
         node.type = NodeType(node_obj["type"].int_value());
-        node.resourceName = node_obj["resourceName"].string_value();
 
         // input pin's id list
         auto& in_pins = node_obj["inputPins"].array_items();
@@ -348,12 +423,28 @@ void GraphEditor::LoadFromFile(std::string filepath)
     {
         Link link;
         link.runtimeID = link_obj["runtimeID"].int_value();
-        link.dstNode = link_obj["dstNode"].int_value();
-        link.dstPin = link_obj["dstPin"].int_value();
-        link.srcNode = link_obj["srcNode"].int_value();
-        link.srcPin = link_obj["srcPin"].int_value();
+        link.node1_ID = link_obj["node1_ID"].int_value();
+        link.pin1_ID = link_obj["pin1_ID"].int_value();
+        link.node2_ID = link_obj["node2_ID"].int_value();
+        link.pin2_ID = link_obj["pin2_ID"].int_value();
 
         links.push_back(link);
+    }
+
+    // load descriptor
+    auto& j_descs = json_obj["descriptorList"].array_items();
+    for (auto& desc_obj : j_descs)
+    {
+        int id = desc_obj["nodeID"].int_value();
+        nodeDescriptorPool[id] = desc_obj;
+    }
+
+    // check if there has Screen
+    bool hasScreen = false;
+    for (auto it = nodePool.begin(); it != nodePool.end(); hasScreen = hasScreen || (it->second.type == NodeType::ScreenTargetNode), it++) {}
+    if (!hasScreen)
+    {
+        GraphEditor::AddNode(NodeType::ScreenTargetNode);
     }
 }
 
@@ -380,10 +471,17 @@ Json GraphEditor::to_json() const
         pinList.push_back(p.second);
     }
 
+    std::vector<Json> descriptorList;
+    for (auto& p : nodeDescriptorPool)
+    {
+        descriptorList.push_back(p.second);
+    }
+
     return Json::object{
         { "links", links },
         { "nodeList", nodeList },
-        { "pinList", pinList}
+        { "pinList", pinList},
+        { "descriptorList" , descriptorList }
     };
 }
 

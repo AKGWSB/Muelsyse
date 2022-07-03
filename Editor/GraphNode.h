@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <d3d12.h>
 #include <map>
 #include <set>
 #include <string>
@@ -56,7 +56,6 @@ public:
 	// the resource held by node
 	// maybe a Texture2D, RenderTexture or ...
 	std::string name;
-	std::string resourceName;
 
 	// list of io pins
 	// storage pin's runtimeID
@@ -82,10 +81,11 @@ public:
 class Link
 {
 public:
-	int srcNode;
-	int dstNode;
-	int srcPin;
-	int dstPin;
+	// two side of this link, but not direction info, in 中文, it calls "无向图"
+	int node1_ID;
+	int pin1_ID;
+	int node2_ID;
+	int pin2_ID;
 
 	// link's id, register while runtime
 	int runtimeID;

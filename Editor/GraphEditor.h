@@ -24,6 +24,10 @@ private:
 	static std::map<int, Pin> pinPool;
 	static std::vector<Link> links;
 
+	// find Node's descriptor by runtimeID
+	// descriptor is a Json type, more felexable
+	static std::map<int, Json> nodeDescriptorPool;
+
 	// current open pipeline file's path
 	std::string filepath;
 
@@ -55,5 +59,9 @@ public:
 	void Execute();
 
 	Json to_json() const;
+
+	// change Node's descriptor on runtime
+	static Json& GetNodeDescriptorByID(int runtimeID);
+	static void SetNodeDescriptorByID(int runtimeID, const Json& json_obj);
 };
 
