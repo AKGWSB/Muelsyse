@@ -5,6 +5,10 @@
 #include "../Library/imgui/imgui_impl_win32.h"
 #include "../Library/imgui/imgui_impl_dx12.h"
 
+#include "Actor.h"
+#include "../Rendering/RenderPass.h"
+#include "../Core/GraphicContex.h"
+
 using std::filesystem::recursive_directory_iterator;
 
 
@@ -54,6 +58,37 @@ void ResourceViewer::Init()
 		{
 			textureViewMap[filepath] = Texture2D::Find(filepath);
 		}
+
+		// mesh
+		if (extname == "obj")
+		{
+			Actor* tempActor = new Actor();
+			tempActor->mesh = Mesh::Find(filepath);
+			tempActor->material = new Material();
+			tempActor->material->shader = Shader::Find("Shaders/lit.hlsl");
+
+			RenderTexture* tempRT = new RenderTexture(128, 128, DXGI_FORMAT_R8G8B8A8_UNORM);
+			
+			RenderPass* tempPass = new RenderPass();
+			tempPass->renderTargets = { tempRT };
+
+			Camera* tempCamera = new Camera(128, 128);
+			tempCamera->SetPosition(XMFLOAT3(1, 1, -1));
+			tempCamera->SetTarget(XMFLOAT3(0, 0, 0));
+
+			// render to texture
+			GraphicContex::PreRender();
+			GraphicContex::RenderLoop(tempCamera, tempPass, { tempActor });
+			GraphicContex::PostRender();
+
+			// hold the view, until program exit
+			meshViewMap[filepath] = tempRT;
+
+			delete tempActor->material;
+			delete tempActor;
+			delete tempPass;
+			delete tempCamera;
+		}
 	}
 
 	for (const auto& file : recursive_directory_iterator("Shaders/"))
@@ -78,6 +113,33 @@ void ResourceViewer::Init()
 	}
 }
 
+void ResourceViewer::ShowResourceView(std::string name, Texture2D* view, bool bFlip)
+{
+	ImGui::Text(name.c_str());
+
+	ImTextureID id = (ImTextureID)(D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr);
+
+	ImVec2 size = ImVec2(128, 128);							// Size of the image we want to make visible
+	ImVec2 uv0 = ImVec2(0.0f, 1.0f);                        // UV coordinates for lower-left
+	ImVec2 uv1 = ImVec2(1, 0);								// UV coordinates for (32,32) in our texture
+	ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
+	ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
+
+	if (!bFlip)
+	{
+		uv0 = ImVec2(0, 0);
+		uv1 = ImVec2(1, 1);
+	}
+
+	if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
+	{
+		isOpen = false;
+		isSelect = true;
+		selectResourceName = name;
+	}
+	ImGui::Dummy(ImVec2(0.0f, 10.0f));
+}
+
 void ResourceViewer::TextureMode()
 {
 	for (auto& p : textureViewMap)
@@ -85,25 +147,10 @@ void ResourceViewer::TextureMode()
 		auto& name = p.first;
 		auto& view = p.second;
 
-		ImGui::Text(name.c_str());
-
-		ImTextureID id = (ImTextureID)(D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr);
-
-		ImVec2 size = ImVec2(128, 128);							// Size of the image we want to make visible
-		ImVec2 uv0 = ImVec2(0.0f, 1.0f);                        // UV coordinates for lower-left
-		ImVec2 uv1 = ImVec2(1, 0);								// UV coordinates for (32,32) in our texture
-		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
-		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
-
-		if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
-		{
-			isOpen = false;
-			isSelect = true;
-			selectResourceName = name;
-		}
-		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+		ResourceViewer::ShowResourceView(name, view);
 	}
 }
+
 void ResourceViewer::ShaderMode()
 {
 	for (int i=0; i<shaderList.size(); i++)
@@ -130,7 +177,13 @@ void ResourceViewer::MaterialMode()
 
 void ResourceViewer::MeshMode()
 {
+	for (auto& p : meshViewMap)
+	{
+		auto& name = p.first;
+		auto& view = p.second;
 
+		ResourceViewer::ShowResourceView(name, view, false);
+	}
 }
 
 void ResourceViewer::RenderUI()
@@ -147,11 +200,11 @@ void ResourceViewer::RenderUI()
 	{
 		if (currentMode == ResourceViewerOpenMode::EMaterial)
 		{
-			
+			ResourceViewer::MaterialMode();
 		}
 		if (currentMode == ResourceViewerOpenMode::EMesh)
 		{
-
+			ResourceViewer::MeshMode();
 		}
 		if (currentMode == ResourceViewerOpenMode::EShader)
 		{

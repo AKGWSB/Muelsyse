@@ -276,11 +276,21 @@ void Editor::RenderGUI()
             ImGui::Dummy(ImVec2(0.0f, 10.0f));
             if (ImGui::TreeNodeEx("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                // open resource viewer
                 ImGui::Text(currencSelectedActor->mesh->name.c_str());
-                if (ImGui::Button("select mesh"))
+                std::string buttonName = "Select Mesh";
+                if (ImGui::Button(buttonName.c_str()))
                 {
-                    
+                    ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EMesh);
                 }
+
+                // change mesh
+                std::string filepath;
+                if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+                {
+                    currencSelectedActor->mesh = Mesh::Find(filepath);
+                }
+
                 ImGui::TreePop();
             }
 
@@ -298,8 +308,8 @@ void Editor::RenderGUI()
                 {
                     // open resource viewer
                     ImGui::Text(currencSelectedActor->material->shader->name.c_str());
-                    std::string buttonName = "select shader";
-                    if (ImGui::Button("select shader"))
+                    std::string buttonName = "Select Shader";
+                    if (ImGui::Button(buttonName.c_str()))
                     {
                         ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EShader);
                     }

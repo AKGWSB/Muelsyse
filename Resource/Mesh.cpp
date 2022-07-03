@@ -98,6 +98,10 @@ void Mesh::LoadObj(std::string filepath)
 
 	std::vector<UINT> tempIdx;
 
+	double INF = 1145141919.810f;
+	XMFLOAT3 maxCorner = XMFLOAT3(-INF, -INF, -INF);
+	XMFLOAT3 minCorner = XMFLOAT3(+INF, +INF, +INF);
+
 	// Loop over shapes
 	for (size_t s = 0; s < shapes.size(); s++) {
 		// Loop over faces(polygon)
@@ -118,6 +122,9 @@ void Mesh::LoadObj(std::string filepath)
 				tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
 				tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
 				tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+
+				maxCorner.x = max(vx, maxCorner.x); maxCorner.y = max(vy, maxCorner.y); maxCorner.z = max(vz, maxCorner.z);
+				minCorner.x = min(vx, minCorner.x); minCorner.y = min(vy, minCorner.y); minCorner.z = min(vz, minCorner.z);
 
 				vert.position = XMFLOAT3(vx, vy, vz);
 
@@ -145,6 +152,15 @@ void Mesh::LoadObj(std::string filepath)
 			// per-face material
 			shapes[s].mesh.material_ids[f];
 		}
+	}
+
+	// normalize to
+	double maxAxis = max(maxCorner.x - minCorner.x, max(maxCorner.y - minCorner.y, maxCorner.z - minCorner.z));
+	XMFLOAT3 center = XMFLOAT3((maxCorner.x + minCorner.x) / 2, (maxCorner.y + minCorner.y) / 2, (maxCorner.z + minCorner.z) / 2);
+	for (auto& vert : vertices)
+	{
+		vert.position.x -= center.x; vert.position.y -= center.y; vert.position.z -= center.z;
+		vert.position.x /= maxAxis; vert.position.y /= maxAxis; vert.position.z /= maxAxis;
 	}
 }
 

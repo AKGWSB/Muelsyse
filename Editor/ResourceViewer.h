@@ -49,6 +49,8 @@ class ResourceViewer
 	ResourceViewer();
 	~ResourceViewer();
 
+	static void ShowResourceView(std::string name, Texture2D* view, bool bFlip = true);
+
 	static void TextureMode();
 	static void ShaderMode();
 	static void MaterialMode();
