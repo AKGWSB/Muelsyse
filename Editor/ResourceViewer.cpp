@@ -16,6 +16,8 @@ bool ResourceViewer::isOpen = false;
 bool ResourceViewer::isSelect = false;
 std::string ResourceViewer::bindButtonName;
 std::string ResourceViewer::selectResourceName;
+ResourceViewerOpenMode ResourceViewer::currentMode;
+std::vector<std::string> ResourceViewer::shaderList;
 
 ResourceViewer::ResourceViewer()
 {
@@ -24,15 +26,7 @@ ResourceViewer::ResourceViewer()
 
 ResourceViewer::~ResourceViewer()
 {
-	for (auto& p : meshViewMap)
-	{
-		delete p.second;
-	}
-
-	for (auto& p : materialViewMap)
-	{
-		delete p.second;
-	}
+	
 }
 
 void ResourceViewer::Init()
@@ -61,6 +55,82 @@ void ResourceViewer::Init()
 			textureViewMap[filepath] = Texture2D::Find(filepath);
 		}
 	}
+
+	for (const auto& file : recursive_directory_iterator("Shaders/"))
+	{
+		std::string filepath = file.path().string();
+
+		// replace '\\' by '/'
+		std::string::size_type pos = 0;
+		while ((pos = filepath.find('\\', pos)) != std::string::npos)
+		{
+			filepath.replace(pos, 1, "/");
+			pos = pos + 1;
+		}
+
+		std::string extname = filepath.substr(filepath.find_last_of(".") + 1);
+
+		// shader
+		if (extname == "hlsl")
+		{
+			shaderList.push_back(filepath);
+		}
+	}
+}
+
+void ResourceViewer::TextureMode()
+{
+	for (auto& p : textureViewMap)
+	{
+		auto& name = p.first;
+		auto& view = p.second;
+
+		ImGui::Text(name.c_str());
+
+		ImTextureID id = (ImTextureID)(D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr);
+
+		ImVec2 size = ImVec2(128, 128);							// Size of the image we want to make visible
+		ImVec2 uv0 = ImVec2(0.0f, 1.0f);                        // UV coordinates for lower-left
+		ImVec2 uv1 = ImVec2(1, 0);								// UV coordinates for (32,32) in our texture
+		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
+		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
+
+		if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
+		{
+			isOpen = false;
+			isSelect = true;
+			selectResourceName = name;
+		}
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+	}
+}
+void ResourceViewer::ShaderMode()
+{
+	for (int i=0; i<shaderList.size(); i++)
+	{
+		auto& shaderName = shaderList[i];
+		std::string buttonID = "Select##" + std::to_string(i);
+
+		if (ImGui::Button(buttonID.c_str()))
+		{
+			isOpen = false;
+			isSelect = true;
+			selectResourceName = shaderName;
+		}
+		ImGui::SameLine();
+		ImGui::Text(shaderName.c_str());
+		ImGui::Dummy(ImVec2(0.0f, 10.0f));
+	}
+}
+
+void ResourceViewer::MaterialMode()
+{
+
+}
+
+void ResourceViewer::MeshMode()
+{
+
 }
 
 void ResourceViewer::RenderUI()
@@ -75,33 +145,40 @@ void ResourceViewer::RenderUI()
 
 	if (ImGui::BeginPopupModal("Resource Viewer Pannel", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		for (auto& p : textureViewMap)
+		if (currentMode == ResourceViewerOpenMode::EMaterial)
 		{
-			auto& name = p.first;
-			auto& view = p.second;
+			
+		}
+		if (currentMode == ResourceViewerOpenMode::EMesh)
+		{
 
-			ImGui::Text(name.c_str());
-
-			ImTextureID id = (ImTextureID)(D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr);
-
-			ImVec2 size = ImVec2(64.0f, 64.0f);					// Size of the image we want to make visible
-			ImVec2 uv0 = ImVec2(0.0f, 1.0f);                        // UV coordinates for lower-left
-			ImVec2 uv1 = ImVec2(1, 0);								// UV coordinates for (32,32) in our texture
-			ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
-			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
-
-			if (ImGui::ImageButton(id, size, uv0, uv1, 3, bg_col, tint_col))
-			{
-				isOpen = false;
-				isSelect = true;
-				selectResourceName = name;
-			}
-			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+		}
+		if (currentMode == ResourceViewerOpenMode::EShader)
+		{
+			ResourceViewer::ShaderMode();
+		}
+		if (currentMode == ResourceViewerOpenMode::ETexture2D)
+		{
+			ResourceViewer::TextureMode();
 		}
 
 		ImGui::EndPopup();
 	}
 }
+
+void ResourceViewer::ReleaseView()
+{
+	for (auto& p : meshViewMap)
+	{
+		delete p.second;
+	}
+
+	for (auto& p : materialViewMap)
+	{
+		delete p.second;
+	}
+}
+
 bool ResourceViewer::GetSelectResourceName(std::string& o_resourceName, std::string buttonName)
 {
 	// not ready for query
@@ -117,9 +194,10 @@ bool ResourceViewer::GetSelectResourceName(std::string& o_resourceName, std::str
 	return true;
 }
 
-void ResourceViewer::Open(std::string buttonName)
+void ResourceViewer::Open(std::string buttonName, ResourceViewerOpenMode mode)
 {
 	bindButtonName = buttonName;
 	isOpen = true;
 	isSelect = false;
+	currentMode = mode;
 }

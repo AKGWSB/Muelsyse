@@ -115,9 +115,8 @@ void Engine::OnRender()
 
 void Engine::OnDestroy()
 {
-    // aotu save
-    scene->SaveToFile();
-    editor->graphicEditor->SaveToFile();
+    // release editor
+    editor->Destory();
 
     // release galobal resource
     RenderTexture::FreeAll();

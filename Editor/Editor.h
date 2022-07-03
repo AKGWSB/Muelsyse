@@ -42,10 +42,9 @@ public:
 	Editor();
 	~Editor();
 	void Init(int w, int h, HWND hwnd);
+	void Destory();
 
 	void PreGUI();			// call before render GUI
 	void PostGUI();			// call after render GUI
 	void RenderGUI();		// ..zzz
-
-	void OpenResourceViewer(std::string buttonName);
 };

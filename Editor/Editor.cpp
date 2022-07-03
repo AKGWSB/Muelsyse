@@ -12,6 +12,19 @@ Editor::Editor()
 
 Editor::~Editor()
 {
+
+}
+
+void Editor::Destory()
+{
+    // aotu save
+    scene->SaveToFile();
+    graphicEditor->SaveToFile();
+
+    // free resource snap view
+    ResourceViewer::ReleaseView();
+
+    // free imgui
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
@@ -283,10 +296,19 @@ void Editor::RenderGUI()
                 ImGui::Dummy(ImVec2(0.0f, 10.0f));
                 if (ImGui::TreeNodeEx("shader", ImGuiTreeNodeFlags_DefaultOpen))
                 {
+                    // open resource viewer
                     ImGui::Text(currencSelectedActor->material->shader->name.c_str());
+                    std::string buttonName = "select shader";
                     if (ImGui::Button("select shader"))
                     {
+                        ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EShader);
+                    }
 
+                    // change tex
+                    std::string filepath;
+                    if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+                    {
+                        currencSelectedActor->material->shader = Shader::Find(filepath);
                     }
 
                     ImGui::TreePop();
@@ -305,11 +327,11 @@ void Editor::RenderGUI()
                         ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
                         ImGui::Text(tex->name.c_str());
 
-                        // button's name
-                        std::string buttonName = "select a texture for " + varname;
+                        // open resource viewer
+                        std::string buttonName = "Select Texture##" + varname;
                         if (ImGui::Button(buttonName.c_str()))
                         {
-                            ResourceViewer::Open(buttonName);
+                            ResourceViewer::Open(buttonName, ResourceViewerOpenMode::ETexture2D);
                         }
                         ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
@@ -405,9 +427,4 @@ void Editor::RenderGUI()
     
     //
     graphicEditor->RenderUI();
-}
-
-void Editor::OpenResourceViewer(std::string buttonName)
-{
-    ResourceViewer::Open(buttonName);
 }
