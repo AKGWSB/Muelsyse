@@ -31,4 +31,6 @@ void Actor::Draw()
 
 	// draw call
 	mesh->Draw();
+
+	shader->DeActivateForDebug();
 }

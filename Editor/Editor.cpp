@@ -120,6 +120,265 @@ void Editor::PostGUI()
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), GraphicContex::g_commandList.Get());
 }
 
+void Editor::RenderDetailPannel()
+{
+    if (currencSelectedActor)
+    {
+        if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text(currencSelectedActor->name.c_str());
+            ImGui::TreePop();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+        if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+
+            Transform& t = currencSelectedActor->transform;
+
+            float u[3] = { t.position.x, t.position.y, t.position.z };
+            float v[3] = { t.rotation.x, t.rotation.y, t.rotation.z };
+            float w[3] = { t.scale.x, t.scale.y, t.scale.z };
+
+            /**/
+            ImGui::InputFloat3("position", u, "%.1f");
+            t.position = XMFLOAT3(u[0], u[1], u[2]);
+
+            ImGui::InputFloat3("rotation", v, "%.1f");
+            t.rotation = XMFLOAT3(v[0], v[1], v[2]);
+
+            ImGui::InputFloat3("scale", w, "%.1f");
+            t.scale = XMFLOAT3(w[0], w[1], w[2]);
+
+            ImGui::TreePop();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+        if (ImGui::TreeNodeEx("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // open resource viewer
+            auto& name = currencSelectedActor->mesh->name;
+            ImGui::Text(name.c_str());
+
+            Texture2D* view = ResourceViewer::GetResourceViewByName(name, ResourceViewerOpenMode::EMesh);
+            auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr;
+            ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
+
+            std::string buttonName = "Select Mesh";
+            if (ImGui::Button(buttonName.c_str()))
+            {
+                ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EMesh);
+            }
+
+            // change mesh
+            std::string filepath;
+            if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+            {
+                currencSelectedActor->mesh = Mesh::Find(filepath);
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+        if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            auto& name = currencSelectedActor->material->name;
+            ImGui::Text(name.c_str());
+
+            Texture2D* view = ResourceViewer::GetResourceViewByName(name, ResourceViewerOpenMode::EMaterial);
+            auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr;
+            ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
+
+            std::string buttonName = "Select Material";
+            if (ImGui::Button(buttonName.c_str()))
+            {
+                ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EMaterial);
+            }
+            // change mat
+            std::string filepath;
+            if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+            {
+                currencSelectedActor->material = Material::Find(filepath);
+            }
+
+
+            ImGui::Dummy(ImVec2(0.0f, 10.0f));
+            if (ImGui::TreeNodeEx("shader", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                // open resource viewer
+                ImGui::Text(currencSelectedActor->material->shader->name.c_str());
+                std::string buttonName = "Select Shader";
+                if (ImGui::Button(buttonName.c_str()))
+                {
+                    ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EShader);
+                }
+
+                // change tex
+                std::string filepath;
+                if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+                {
+                    currencSelectedActor->material->shader = Shader::Find(filepath);
+                }
+
+                ImGui::TreePop();
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+            if (ImGui::TreeNodeEx("textures", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                // texture change list
+                std::vector<std::string> texDeleteList;
+                std::vector<std::string> texAddList;
+
+                // varname (in shader) changed from p.first --> p.second
+                std::vector<std::pair<std::string, std::string>> varNameChangeList;
+
+                int i = 0;
+                for (auto& p : currencSelectedActor->material->textures)
+                {
+                    i++;
+                    auto varname = p.first;     // texture name in shader, eg: _mainTex
+                    auto tex = p.second;
+
+                    // varname in shader
+                    char varname_c[128];
+                    strcpy_s(varname_c, varname.c_str());
+                    ImGui::InputText(std::string("tex name##" + std::to_string(i)).c_str(), varname_c, IM_ARRAYSIZE(varname_c));
+                    std::string newVarname(varname_c);
+
+                    // change varname
+                    if (currencSelectedActor->material->textures.find(newVarname) == currencSelectedActor->material->textures.end())
+                    {
+                        varNameChangeList.push_back({ varname , newVarname });
+                    }
+
+                    // view pic
+                    auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
+                    ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
+
+                    // open resource viewer
+                    std::string buttonName = "Select Texture##" + varname;
+                    if (ImGui::Button(buttonName.c_str()))
+                    {
+                        ResourceViewer::Open(buttonName, ResourceViewerOpenMode::ETexture2D);
+                    }
+                    // remove button
+                    ImGui::SameLine();
+                    std::string delButtonName = "Remove##" + varname;
+                    if (ImGui::Button(delButtonName.c_str()))
+                    {
+                        texDeleteList.push_back(varname);
+                    }
+                    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+                    // change tex
+                    std::string filepath;
+                    if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+                    {
+                        currencSelectedActor->material->SetTexture(varname, Texture2D::Find(filepath));
+                    }
+                }
+
+                // delete texture
+                for (auto& name : texDeleteList)
+                {
+                    currencSelectedActor->material->textures.erase(name);
+                }
+
+                // add texture
+
+                // change material varname
+                for (auto& p : varNameChangeList)
+                {
+                    auto& oldVarName = p.first;
+                    auto& newVarName = p.second;
+
+                    currencSelectedActor->material->textures[newVarName] = currencSelectedActor->material->textures[oldVarName];
+                    currencSelectedActor->material->textures.erase(oldVarName);
+                }
+
+                ImGui::TreePop();
+            }
+
+            ImGui::TreePop();
+        }
+    }
+    else
+    {
+        ImGui::Text("Select an Actor to view detail");
+    }
+}
+
+void Editor::RenderScenePannel()
+{
+    if (ImGui::Button("New"))
+    {
+
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Load"))
+    {
+
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Save"))
+    {
+        scene->SaveToFile();
+    }
+    
+
+    // name
+    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+    if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text(scene->name.c_str());
+        ImGui::TreePop();
+    }
+
+    // cameras
+    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+    if (ImGui::TreeNodeEx("Camera list", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text("mainCamera");
+        ImGui::TreePop();
+    }
+
+    // actors
+    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+    if (ImGui::TreeNodeEx("Actors list", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        std::vector<std::string> items;
+
+        // collect names
+        for (auto& actor : scene->actors)
+        {
+            items.push_back(actor->name);
+        }
+
+        if (ImGui::BeginListBox("##listbox 2", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+        {
+            for (int i = 0; i < items.size(); i++)
+            {
+                const bool is_selected = (actor_item_current_idx == i);
+                if (ImGui::Selectable(items[i].c_str(), is_selected)) {
+                    actor_item_current_idx = i;
+                }
+                // set choosen actor
+                if (is_selected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                    currencSelectedActor = scene->actors[actor_item_current_idx].get();
+                }
+            }
+            ImGui::EndListBox();
+        }
+
+        ImGui::TreePop();
+    }
+}
+
 void Editor::RenderGUI()
 {
     //
@@ -137,90 +396,20 @@ void Editor::RenderGUI()
     window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
     window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
 
-    
-
     // scene window
     {
         window_flags = 0;
-        window_flags |= ImGuiWindowFlags_NoCollapse;
         window_flags |= ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoResize;
 
-        pos.x = work_pos.x + g_width * 0.3;
-        pos.y = work_pos.y + g_height * 0.7;
+        pos.x = work_pos.x;
+        pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowSize(ImVec2(g_width * 0.4, g_height * 0.3));
+        ImGui::SetNextWindowSize(ImVec2(g_width * 0.16, g_height));
 
         ImGui::Begin("Scene", 0, window_flags);
 
-        //if (ImGui::CollapsingHeader("Help")){}
-
-        {
-            if (ImGui::Button("New"))
-            {
-
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Load"))
-            {
-
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Save"))
-            {
-                scene->SaveToFile();
-            }
-        }
-
-        // name
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
-        if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Text(scene->name.c_str());
-            ImGui::TreePop();
-        }
-
-        // cameras
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
-        if (ImGui::TreeNodeEx("Camera list", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Text("mainCamera");
-            ImGui::TreePop();
-        }
-        
-        // actors
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
-        if (ImGui::TreeNodeEx("Actors list", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            std::vector<std::string> items;
-
-            // collect names
-            for (auto& actor : scene->actors)
-            {
-                items.push_back(actor->name);
-            }
-
-            if (ImGui::BeginListBox("##listbox 2", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
-            {
-                for (int i = 0; i < items.size(); i++)
-                {
-                    const bool is_selected = (actor_item_current_idx == i);
-                    if (ImGui::Selectable(items[i].c_str(), is_selected)) {
-                        actor_item_current_idx = i;
-                    }
-                    // set choosen actor
-                    if (is_selected)
-                    {
-                        ImGui::SetItemDefaultFocus();
-                        currencSelectedActor = scene->actors[actor_item_current_idx].get();
-                    } 
-                }
-                ImGui::EndListBox();
-            }
-
-            ImGui::TreePop();
-        }
-        
+        RenderScenePannel();
 
         ImGui::End();
     }
@@ -228,158 +417,17 @@ void Editor::RenderGUI()
     // Detail window
     {
         window_flags = 0;
-        window_flags |= ImGuiWindowFlags_NoCollapse;
         window_flags |= ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoResize;
 
-        pos.x = work_pos.x;
+        pos.x = work_pos.x + g_width * 0.7;
         pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
         ImGui::SetNextWindowSize(ImVec2(g_width * 0.3, g_height));
 
         ImGui::Begin("Detail Information", 0, window_flags);
 
-        if (currencSelectedActor)
-        {
-            if (ImGui::TreeNodeEx("Name", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::Text(currencSelectedActor->name.c_str());
-                ImGui::TreePop();
-            }
-            
-            ImGui::Dummy(ImVec2(0.0f, 10.0f));
-            if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-               
-                Transform& t = currencSelectedActor->transform;
-                
-                float u[3] = { t.position.x, t.position.y, t.position.z };
-                float v[3] = { t.rotation.x, t.rotation.y, t.rotation.z };
-                float w[3] = { t.scale.x, t.scale.y, t.scale.z };
-
-                /**/
-                ImGui::InputFloat3("position", u, "%.1f");
-                t.position = XMFLOAT3(u[0], u[1], u[2]);
-
-                ImGui::InputFloat3("rotation", v, "%.1f");
-                t.rotation = XMFLOAT3(v[0], v[1], v[2]);
-
-                ImGui::InputFloat3("scale", w, "%.1f");
-                t.scale = XMFLOAT3(w[0], w[1], w[2]);
-
-                ImGui::TreePop();
-            }
-
-            ImGui::Dummy(ImVec2(0.0f, 10.0f));
-            if (ImGui::TreeNodeEx("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                // open resource viewer
-                auto& name = currencSelectedActor->mesh->name;
-                ImGui::Text(name.c_str());
-
-                Texture2D* view = ResourceViewer::GetResourceViewByName(name, ResourceViewerOpenMode::EMesh);
-                auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr;
-                ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
-
-                std::string buttonName = "Select Mesh";
-                if (ImGui::Button(buttonName.c_str()))
-                {
-                    ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EMesh);
-                }
-
-                // change mesh
-                std::string filepath;
-                if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
-                {
-                    currencSelectedActor->mesh = Mesh::Find(filepath);
-                }
-
-                ImGui::TreePop();
-            }
-
-            ImGui::Dummy(ImVec2(0.0f, 10.0f));
-            if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                auto& name = currencSelectedActor->material->name;
-                ImGui::Text(name.c_str());
-
-                Texture2D* view = ResourceViewer::GetResourceViewByName(name, ResourceViewerOpenMode::EMaterial);
-                auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr;
-                ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
-
-                std::string buttonName = "Select Material";
-                if (ImGui::Button(buttonName.c_str()))
-                {
-                    ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EMaterial);
-                }
-                // change mat
-                std::string filepath;
-                if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
-                {
-                    currencSelectedActor->material = Material::Find(filepath);
-                }
-
-
-                ImGui::Dummy(ImVec2(0.0f, 10.0f));
-                if (ImGui::TreeNodeEx("shader", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                    // open resource viewer
-                    ImGui::Text(currencSelectedActor->material->shader->name.c_str());
-                    std::string buttonName = "Select Shader";
-                    if (ImGui::Button(buttonName.c_str()))
-                    {
-                        ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EShader);
-                    }
-
-                    // change tex
-                    std::string filepath;
-                    if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
-                    {
-                        currencSelectedActor->material->shader = Shader::Find(filepath);
-                    }
-
-                    ImGui::TreePop();
-                }
-                
-                ImGui::Dummy(ImVec2(0.0f, 10.0f));
-                
-                if (ImGui::TreeNodeEx("textures", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                    for (auto& p : currencSelectedActor->material->textures)
-                    {
-                        auto varname = p.first;     // texture name in shader, eg: _mainTex
-                        auto tex = p.second;
-
-                        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
-                        ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
-                        ImGui::Text(tex->name.c_str());
-
-                        // open resource viewer
-                        std::string buttonName = "Select Texture##" + varname;
-                        if (ImGui::Button(buttonName.c_str()))
-                        {
-                            ResourceViewer::Open(buttonName, ResourceViewerOpenMode::ETexture2D);
-                        }
-                        ImGui::Dummy(ImVec2(0.0f, 10.0f));
-
-                        // change tex
-                        std::string filepath;
-                        if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
-                        {
-                            currencSelectedActor->material->textures[varname] = Texture2D::Find(filepath);
-                        }   
-                    }
-                    
-                    ImGui::TreePop();
-                }
-
-                ImGui::TreePop();
-            }
-        }
-        else
-        {
-            ImGui::Text("Select an Actor to view detail");
-        }
+        RenderDetailPannel();
 
         ImGui::End();
     }
@@ -394,17 +442,17 @@ void Editor::RenderGUI()
         window_flags |= ImGuiWindowFlags_NoScrollbar;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-        pos.x = work_pos.x + g_width * 0.3;
+        pos.x = work_pos.x;
         pos.y = work_pos.y;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowSize(ImVec2(g_width * 0.7, g_height * 0.7));
+        ImGui::SetNextWindowSize(ImVec2(g_width, g_height));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
         ImGui::Begin("screen", 0, window_flags);
         //ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
 
         auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(RT_final->srvGpuHandle).ptr;
-        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width * 0.7, g_height * 0.7));
+        ImGui::Image((ImTextureID)hdptr, ImVec2(g_width, g_height));
         ImGui::End();
         ImGui::PopStyleVar();
     }
@@ -419,8 +467,8 @@ void Editor::RenderGUI()
         window_flags |= ImGuiWindowFlags_NoTitleBar;
 
         ImGui::SetNextWindowBgAlpha(0.35f);
-        pos.x = work_pos.x + g_width * 0.3;
-        pos.y = work_pos.y;
+        pos.x = work_pos.x + g_width * 0.16;
+        pos.y = work_pos.y + 32;
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always, window_pos_pivot);
 
         ImGui::Begin("Profile", 0, window_flags);
@@ -428,26 +476,6 @@ void Editor::RenderGUI()
         ImGui::Text("FPS  %.1f", ImGui::GetIO().Framerate);
         ImGui::End();
     }
-
-
-    // show depth
-    {
-        ImGui::Begin("DirectX12 Texture Test");
-        ImGui::Text("CPU handle = %p", depthTex->srvCpuHandle);
-        ImGui::Text("GPU handle = %p", depthTex->srvGpuHandle);
-        ImGui::Text("size = %d x %d", depthTex->width, depthTex->height);
-        float w = depthTex->width / 3.0f;
-        float h = depthTex->height / 3.0f;
-
-        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(depthTex->srvGpuHandle).ptr;
-
-        ImGui::ShowDemoWindow();
-
-        // Note that we pass the GPU SRV handle here, *not* the CPU handle. We're passing the internal pointer value, cast to an ImTextureID
-        ImGui::Image((ImTextureID)hdptr, ImVec2(w, h));
-        ImGui::End();
-    }
-    
 
     // show viewer
     ResourceViewer::RenderUI();

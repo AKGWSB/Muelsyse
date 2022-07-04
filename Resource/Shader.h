@@ -54,6 +54,10 @@ public:
 	void CreateRootSignature();
 	void Activate();
 
+	// if a texture is ref in hlsl code, but our shader not set it
+	// the texture will be replace to a "TEXTURE_NOT_FOUND.png" for debug
+	void DeActivateForDebug();
+
 	void SetTexture(std::string textureName, Texture2D* src);
 	void SetCbuffer(std::string bufferName, UploadBuffer* src);
 	void SetMatrix(std::string bufferName, std::string varName, XMMATRIX src);

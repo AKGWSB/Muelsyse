@@ -237,6 +237,17 @@ void Shader::Activate()
     }
 }
 
+void Shader::DeActivateForDebug()
+{
+    Texture2D* tex404 = Texture2D::Find("Core/TEXTURE_NOT_FOUND.png");
+
+    for (auto& p : textureBindInfo)
+    {
+        auto& info = p.second;
+        info.texture = tex404;
+    }
+}
+
 void Shader::SetTexture(std::string textureName, Texture2D* src)
 {
     if (textureBindInfo.find(textureName) == textureBindInfo.end()) return;
