@@ -18,10 +18,13 @@ using Microsoft::WRL::ComPtr;
 
 class Editor
 {
-public:
+private:
 	int g_width;
 	int g_height;
-	int actor_item_current_idx = 0;	// current select actor
+
+	// current select actor
+	int actor_item_current_idx = 0;	
+	Actor* currencSelectedActor = NULL;
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvCpuHandle;		// cpu handle for srv descriptor
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle;		// gpu handle for srv descriptor
@@ -30,21 +33,27 @@ public:
 	ImFont* font_default;
 	ImFont* font_small;
 
-	Scene* scene;	// pass from engine
-	Actor* currencSelectedActor = NULL;
-
-	std::unique_ptr<RenderPass> emptyRenderPass;	// set render target to screen use a empty "RenderPass" class
-	Texture2D* RT_final;
-	Texture2D* depthTex;
-
+	// frame graph
 	std::unique_ptr<GraphEditor> graphicEditor;
 
-	Editor();
-	~Editor();
-	void Init(int w, int h, HWND hwnd);
-	void Destory();
+	// render imgui to screen
+	std::unique_ptr<RenderPass> emptyRenderPass;
 
+	// render for ImGui
 	void PreGUI();			// call before render GUI
 	void PostGUI();			// call after render GUI
 	void RenderGUI();		// ..zzz
+
+public:
+	// pass from engine
+	Scene* scene;	
+	Texture2D* RT_final;
+	Texture2D* depthTex;
+
+	Editor();
+	~Editor();
+
+	void Init(int w, int h, HWND hwnd);
+	void Destory();
+	void Render();
 };

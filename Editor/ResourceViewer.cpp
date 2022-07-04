@@ -22,6 +22,9 @@ std::string ResourceViewer::bindButtonName;
 std::string ResourceViewer::selectResourceName;
 ResourceViewerOpenMode ResourceViewer::currentMode;
 std::vector<std::string> ResourceViewer::shaderList;
+std::unique_ptr<Actor> ResourceViewer::m_tempActor;
+std::unique_ptr<RenderPass> ResourceViewer::m_tempPass;
+std::unique_ptr<Camera> ResourceViewer::m_tempCamera;
 
 ResourceViewer::ResourceViewer()
 {
@@ -33,8 +36,29 @@ ResourceViewer::~ResourceViewer()
 	
 }
 
+void ResourceViewer::UpdateMaterialView(std::string filepath, bool singleFrame)
+{
+	// set specific material, but use sphere
+	m_tempActor->mesh = Mesh::Find("Asset/Geometry/sphere.obj");
+	m_tempActor->material = Material::Find(filepath);
+	m_tempPass->renderTargets = { materialViewMap[filepath] };
+
+	// render to texture
+	if (singleFrame) GraphicContex::PreRender();
+	GraphicContex::RenderLoop(m_tempCamera.get(), m_tempPass.get(), { m_tempActor.get() });
+	if (singleFrame) GraphicContex::PostRender();
+}
+
 void ResourceViewer::Init()
 {
+	// some temp resource
+	m_tempActor = std::make_unique<Actor>();
+	m_tempPass = std::make_unique<RenderPass>();
+
+	m_tempCamera = std::make_unique<Camera>(128, 128);
+	m_tempCamera->SetPosition(XMFLOAT3(1, 1, -1));
+	m_tempCamera->SetTarget(XMFLOAT3(0, 0, 0));
+
 	// scan dir
 	for (const auto& file : recursive_directory_iterator("Asset/"))
 	{
@@ -89,8 +113,19 @@ void ResourceViewer::Init()
 			delete tempPass;
 			delete tempCamera;
 		}
+
+		// material
+		if (extname == "material")
+		{
+			// hold the view, until program exit
+			RenderTexture* tempRT = new RenderTexture(128, 128, DXGI_FORMAT_R8G8B8A8_UNORM);
+			materialViewMap[filepath] = tempRT;
+
+			ResourceViewer::UpdateMaterialView(filepath);
+		}
 	}
 
+	// shaders
 	for (const auto& file : recursive_directory_iterator("Shaders/"))
 	{
 		std::string filepath = file.path().string();
@@ -172,7 +207,13 @@ void ResourceViewer::ShaderMode()
 
 void ResourceViewer::MaterialMode()
 {
+	for (auto& p : materialViewMap)
+	{
+		auto& name = p.first;
+		auto& view = p.second;
 
+		ResourceViewer::ShowResourceView(name, view, false);
+	}
 }
 
 void ResourceViewer::MeshMode()
@@ -253,4 +294,35 @@ void ResourceViewer::Open(std::string buttonName, ResourceViewerOpenMode mode)
 	isOpen = true;
 	isSelect = false;
 	currentMode = mode;
+}
+
+Texture2D* ResourceViewer::GetResourceViewByName(std::string name, ResourceViewerOpenMode mode)
+{
+	if (mode == ResourceViewerOpenMode::EMesh)
+	{
+		if (meshViewMap.find(name) != meshViewMap.end())
+		{
+			return meshViewMap[name];
+		}
+		return NULL;
+	}
+
+	if (mode == ResourceViewerOpenMode::EMaterial)
+	{
+		if (materialViewMap.find(name) != materialViewMap.end())
+		{
+			return materialViewMap[name];
+		}
+		return NULL;
+	}
+
+	return NULL;
+}
+
+void ResourceViewer::RenderResourceView()
+{
+	for (auto& p : materialViewMap)
+	{
+		UpdateMaterialView(p.first, false);
+	}
 }

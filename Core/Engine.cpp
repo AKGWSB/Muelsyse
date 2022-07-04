@@ -71,7 +71,10 @@ void Engine::OnInit()
     }
 
     // init scene
-    scene = std::make_unique<Scene>();
+    {
+        scene = std::make_unique<Scene>();
+        scene->LoadFromFile("Asset/default_scene.json");
+    }
 
     // init editor
     {
@@ -99,16 +102,13 @@ void Engine::OnRender()
 	GraphicContex::PreRender();
 	
     // first pass
-    auto actors = scene->GetRenderObjects();
-    GraphicContex::RenderLoop(camera, basePass.get(), actors);
+    GraphicContex::RenderLoop(camera, basePass.get(), scene->GetRenderObjects());
     
     // second pass
     GraphicContex::RenderLoop(camera, finalPass.get(), { A_quad.get() });
     
-    // UI pass
-    editor->PreGUI();
-    editor->RenderGUI();
-    editor->PostGUI();
+    // editor's callback
+    editor->Render();
 
 	GraphicContex::PostRender();
 }

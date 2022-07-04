@@ -94,9 +94,6 @@ void Editor::Init(int w, int h, HWND hwnd)
     // 
     emptyRenderPass = std::make_unique<RenderPass>();
 
-    // load scene
-    scene->LoadFromFile("Asset/roost_scene.json");
-
     // 
     ResourceViewer::Init();
 
@@ -277,7 +274,13 @@ void Editor::RenderGUI()
             if (ImGui::TreeNodeEx("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 // open resource viewer
-                ImGui::Text(currencSelectedActor->mesh->name.c_str());
+                auto& name = currencSelectedActor->mesh->name;
+                ImGui::Text(name.c_str());
+
+                Texture2D* view = ResourceViewer::GetResourceViewByName(name, ResourceViewerOpenMode::EMesh);
+                auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr;
+                ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
+
                 std::string buttonName = "Select Mesh";
                 if (ImGui::Button(buttonName.c_str()))
                 {
@@ -297,11 +300,25 @@ void Editor::RenderGUI()
             ImGui::Dummy(ImVec2(0.0f, 10.0f));
             if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                ImGui::Text(currencSelectedActor->material->name.c_str());
-                if (ImGui::Button("select material"))
-                {
+                auto& name = currencSelectedActor->material->name;
+                ImGui::Text(name.c_str());
 
+                Texture2D* view = ResourceViewer::GetResourceViewByName(name, ResourceViewerOpenMode::EMaterial);
+                auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(view->srvGpuHandle).ptr;
+                ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1));
+
+                std::string buttonName = "Select Material";
+                if (ImGui::Button(buttonName.c_str()))
+                {
+                    ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EMaterial);
                 }
+                // change mat
+                std::string filepath;
+                if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+                {
+                    currencSelectedActor->material = Material::Find(filepath);
+                }
+
 
                 ImGui::Dummy(ImVec2(0.0f, 10.0f));
                 if (ImGui::TreeNodeEx("shader", ImGuiTreeNodeFlags_DefaultOpen))
@@ -437,4 +454,15 @@ void Editor::RenderGUI()
     
     //
     graphicEditor->RenderUI();
+}
+
+void Editor::Render()
+{
+    // render each pass, "compiler" from "GraphEditor"
+    ResourceViewer::RenderResourceView();
+
+    // UI pass
+    this->PreGUI();
+    this->RenderGUI();
+    this->PostGUI();
 }
