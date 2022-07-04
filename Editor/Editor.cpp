@@ -120,7 +120,7 @@ void Editor::PostGUI()
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), GraphicContex::g_commandList.Get());
 }
 
-void Editor::RenderDetailPannel()
+void Editor::RenderDetailPanel()
 {
     if (currencSelectedActor)
     {
@@ -225,60 +225,74 @@ void Editor::RenderDetailPannel()
             }
 
             ImGui::Dummy(ImVec2(0.0f, 10.0f));
-
             if (ImGui::TreeNodeEx("textures", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                if (ImGui::Button("Add Texture"))
+                {
+                    std::string addTexName = "tempTex_" + std::to_string(rand());
+                    currencSelectedActor->material->textures[addTexName] = Texture2D::Find("Core/TEXTURE_NOT_FOUND.png");
+                }
+
                 // texture change list
                 std::vector<std::string> texDeleteList;
-                std::vector<std::string> texAddList;
 
                 // varname (in shader) changed from p.first --> p.second
                 std::vector<std::pair<std::string, std::string>> varNameChangeList;
 
-                int i = 0;
-                for (auto& p : currencSelectedActor->material->textures)
+                if (ImGui::BeginTable("split", 2, ImGuiTableFlags_Borders))
                 {
-                    i++;
-                    auto varname = p.first;     // texture name in shader, eg: _mainTex
-                    auto tex = p.second;
-
-                    // varname in shader
-                    char varname_c[128];
-                    strcpy_s(varname_c, varname.c_str());
-                    ImGui::InputText(std::string("tex name##" + std::to_string(i)).c_str(), varname_c, IM_ARRAYSIZE(varname_c));
-                    std::string newVarname(varname_c);
-
-                    // change varname
-                    if (currencSelectedActor->material->textures.find(newVarname) == currencSelectedActor->material->textures.end())
+                    int i = 0;
+                    for (auto& p : currencSelectedActor->material->textures)
                     {
-                        varNameChangeList.push_back({ varname , newVarname });
-                    }
+                        i++;
+                        auto varname = p.first;     // texture name in shader, eg: _mainTex
+                        auto tex = p.second;
 
-                    // view pic
-                    auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
-                    ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
+                        // table left side
+                        ImGui::TableNextColumn();
+                        // view pic
+                        auto hdptr = D3D12_GPU_DESCRIPTOR_HANDLE(tex->srvGpuHandle).ptr;
+                        ImGui::Image((ImTextureID)hdptr, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
 
-                    // open resource viewer
-                    std::string buttonName = "Select Texture##" + varname;
-                    if (ImGui::Button(buttonName.c_str()))
-                    {
-                        ResourceViewer::Open(buttonName, ResourceViewerOpenMode::ETexture2D);
-                    }
-                    // remove button
-                    ImGui::SameLine();
-                    std::string delButtonName = "Remove##" + varname;
-                    if (ImGui::Button(delButtonName.c_str()))
-                    {
-                        texDeleteList.push_back(varname);
-                    }
-                    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+                        // table right side
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Var Name");
+                        // varname in shader
+                        char varname_c[128];
+                        strcpy_s(varname_c, varname.c_str());
+                        ImGui::InputText(std::string("##tex name" + std::to_string(i)).c_str(), varname_c, IM_ARRAYSIZE(varname_c));
+                        std::string newVarname(varname_c);
 
-                    // change tex
-                    std::string filepath;
-                    if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
-                    {
-                        currencSelectedActor->material->SetTexture(varname, Texture2D::Find(filepath));
+                        // change varname
+                        if (currencSelectedActor->material->textures.find(newVarname) == currencSelectedActor->material->textures.end())
+                        {
+                            varNameChangeList.push_back({ varname , newVarname });
+                        }
+
+                        // open resource viewer
+                        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+                        ImGui::Text("Operation");
+                        std::string buttonName = "Select Texture##" + varname;
+                        if (ImGui::Button(buttonName.c_str()))
+                        {
+                            ResourceViewer::Open(buttonName, ResourceViewerOpenMode::ETexture2D);
+                        }
+                        // remove button
+                        std::string delButtonName = "Remove##" + varname;
+                        if (ImGui::Button(delButtonName.c_str()))
+                        {
+                            texDeleteList.push_back(varname);
+                        }
+                        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+                        // change tex
+                        std::string filepath;
+                        if (ResourceViewer::GetSelectResourceName(filepath, buttonName))
+                        {
+                            currencSelectedActor->material->SetTexture(varname, Texture2D::Find(filepath));
+                        }
                     }
+                    ImGui::EndTable();
                 }
 
                 // delete texture
@@ -311,7 +325,7 @@ void Editor::RenderDetailPannel()
     }
 }
 
-void Editor::RenderScenePannel()
+void Editor::RenderScenePanel()
 {
     if (ImGui::Button("New"))
     {
@@ -409,7 +423,7 @@ void Editor::RenderGUI()
 
         ImGui::Begin("Scene", 0, window_flags);
 
-        RenderScenePannel();
+        RenderScenePanel();
 
         ImGui::End();
     }
@@ -427,7 +441,7 @@ void Editor::RenderGUI()
 
         ImGui::Begin("Detail Information", 0, window_flags);
 
-        RenderDetailPannel();
+        RenderDetailPanel();
 
         ImGui::End();
     }

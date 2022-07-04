@@ -1,1 +1,1 @@
-{"shader":"Shaders/unlit.hlsl","textures":[{"name":"mainTex","path":"Asset/wall.jpg"}]}
+{"shader":"Shaders/unlit.hlsl","textures":[{"name":"mainTex","path":"Asset/wall.jpg"},{"name":"tex0","path":"Asset/test2.jpg"}]}

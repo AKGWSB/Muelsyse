@@ -44,8 +44,8 @@ private:
 	void PostGUI();			// call after render GUI
 	void RenderGUI();		// ..zzz
 
-	void RenderDetailPannel();
-	void RenderScenePannel();
+	void RenderDetailPanel();
+	void RenderScenePanel();
 
 public:
 	// pass from engine
