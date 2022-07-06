@@ -16,7 +16,8 @@ enum ResourceViewerOpenMode
 	ETexture2D,
 	EShader,
 	EMaterial,
-	EMesh
+	EMesh,
+	EInputText
 };
 
 class ResourceViewer
@@ -61,6 +62,9 @@ class ResourceViewer
 	static void ShaderMode();
 	static void MaterialMode();
 	static void MeshMode();
+
+	// allow user to input a text, avoid
+	static void InputTextMode();
 
 	// material's view may change while runtime, compute it ever frame
 	static void UpdateMaterialView(std::string filepath, bool singleFrame = true);

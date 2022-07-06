@@ -1,1 +1,1 @@
-{"shader":"Shaders/unlit.hlsl","textures":[{"name":"Metallic","path":"Asset/spaceship/StarSparrow_Metallic.png"},{"name":"Normal","path":"Asset/spaceship/StarSparrow_Normal.png"},{"name":"mainTex","path":"Asset/spaceship/StarSparrow_Red.png"}]}
+{"shader":"Shaders/unlit.hlsl","textures":[{"name":"_Metallic","path":"Asset/spaceship/StarSparrow_Metallic.png"},{"name":"_Normal","path":"Asset/spaceship/StarSparrow_Normal.png"},{"name":"_Roughness","path":"Asset/spaceship/StarSparrow_Glossiness.png"},{"name":"mainTex","path":"Asset/spaceship/StarSparrow_Red.png"}]}

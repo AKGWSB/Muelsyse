@@ -227,6 +227,22 @@ void ResourceViewer::MeshMode()
 	}
 }
 
+void ResourceViewer::InputTextMode()
+{
+	// varname in shader
+	static char inputBuffer[128] = "";
+	ImGui::InputText(std::string("##" + bindButtonName).c_str(), inputBuffer, IM_ARRAYSIZE(inputBuffer), ImGuiInputTextFlags_AutoSelectAll);
+	selectResourceName = std::string(inputBuffer);
+
+	if (ImGui::Button("Ok"))
+	{
+		isOpen = false;
+		isSelect = true;
+
+		strcpy_s(inputBuffer, "");
+	}
+}
+
 void ResourceViewer::RenderUI()
 {
 	if (isOpen == false) return;
@@ -254,6 +270,10 @@ void ResourceViewer::RenderUI()
 		if (currentMode == ResourceViewerOpenMode::ETexture2D)
 		{
 			ResourceViewer::TextureMode();
+		}
+		if (currentMode == ResourceViewerOpenMode::EInputText)
+		{
+			ResourceViewer::InputTextMode();
 		}
 
 		ImGui::EndPopup();
@@ -294,6 +314,9 @@ void ResourceViewer::Open(std::string buttonName, ResourceViewerOpenMode mode)
 	isOpen = true;
 	isSelect = false;
 	currentMode = mode;
+
+	// clear last select
+	selectResourceName = "";
 }
 
 Texture2D* ResourceViewer::GetResourceViewByName(std::string name, ResourceViewerOpenMode mode)

@@ -256,29 +256,35 @@ void Editor::RenderDetailPanel()
 
                         // table right side
                         ImGui::TableNextColumn();
-                        ImGui::Text("Var Name");
-                        // varname in shader
-                        char varname_c[128];
-                        strcpy_s(varname_c, varname.c_str());
-                        ImGui::InputText(std::string("##tex name" + std::to_string(i)).c_str(), varname_c, IM_ARRAYSIZE(varname_c));
-                        std::string newVarname(varname_c);
+                        ImGui::Text("Var Name: ");
+                        ImGui::Text(varname.c_str());
 
-                        // change varname
-                        if (currencSelectedActor->material->textures.find(newVarname) == currencSelectedActor->material->textures.end())
+                        // texture's varname
+                        std::string buttonName = "Change##" + varname;
+                        std::string newVarname;
+                        if (ImGui::Button(buttonName.c_str()))
                         {
-                            varNameChangeList.push_back({ varname , newVarname });
+                            ResourceViewer::Open(buttonName, ResourceViewerOpenMode::EInputText);
+                        }
+                        if (ResourceViewer::GetSelectResourceName(newVarname, buttonName))
+                        {
+                            // change varname
+                            if (currencSelectedActor->material->textures.find(newVarname) == currencSelectedActor->material->textures.end())
+                            {
+                                varNameChangeList.push_back({ varname , newVarname });
+                            }
                         }
 
                         // open resource viewer
                         ImGui::Dummy(ImVec2(0.0f, 10.0f));
                         ImGui::Text("Operation");
-                        std::string buttonName = "Select Texture##" + varname;
+                        buttonName = "Select Texture##" + varname;
                         if (ImGui::Button(buttonName.c_str()))
                         {
                             ResourceViewer::Open(buttonName, ResourceViewerOpenMode::ETexture2D);
                         }
                         // remove button
-                        std::string delButtonName = "Remove##" + varname;
+                        std::string delButtonName = "Remove Texture##" + varname;
                         if (ImGui::Button(delButtonName.c_str()))
                         {
                             texDeleteList.push_back(varname);
