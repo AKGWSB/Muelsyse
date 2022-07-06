@@ -2,6 +2,7 @@
 
 #include "../Core/helper.h"
 #include "../Core/GraphicContex.h"
+#include "../Library/imgui/ImGuizmo.h"
 
 #include "ResourceViewer.h"
 
@@ -107,6 +108,7 @@ void Editor::PreGUI()
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
 }
 
 void Editor::PostGUI()
@@ -454,6 +456,7 @@ void Editor::RenderGUI()
 
     // show screen buffer
     {
+        /**/
         window_flags = 0;
         window_flags |= ImGuiWindowFlags_NoTitleBar;
         window_flags |= ImGuiWindowFlags_NoMove;
@@ -497,10 +500,48 @@ void Editor::RenderGUI()
         ImGui::End();
     }
 
+    // show guizmo
+    {
+        
+        Transform& transform = currencSelectedActor->transform;
+        Camera& mainCamera = scene->cameraPool["mainCamera"];
+        
+        XMMATRIX _modelMatrix = XMMatrixTranspose(transform.GetTransformMatrix());
+        XMMATRIX _viewMatrix = XMMatrixTranspose(mainCamera.GetViewMatrix());
+        XMMATRIX _projectionMatrix = XMMatrixTranspose(mainCamera.GetProjectionMatrix());
+        /*
+        XMMATRIX _modelMatrix = currencSelectedActor->transform.GetTransformMatrix();
+        XMMATRIX _viewMatrix = mainCamera.GetViewMatrix();
+        XMMATRIX _projectionMatrix = mainCamera.GetProjectionMatrix(); */
+
+        XMFLOAT4X4 modelMatrix, viewMatrix, projectionMatrix;
+        XMStoreFloat4x4(&modelMatrix, _modelMatrix);
+        XMStoreFloat4x4(&viewMatrix, _viewMatrix);
+        XMStoreFloat4x4(&projectionMatrix, _projectionMatrix);
+
+        /**/
+        static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
+        static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+
+        
+        //ImGuizmo::RecomposeMatrixFromComponents((const float*)&transform.position, (const float*)&transform.rotation, (const float*)&transform.scale, (float*)&modelMatrix);
+
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+        ImGuizmo::Manipulate(
+            (const float*)&viewMatrix, (const float*)&projectionMatrix, 
+            mCurrentGizmoOperation, mCurrentGizmoMode, 
+            (float*)&modelMatrix, NULL, NULL);
+
+        ImGuizmo::DecomposeMatrixToComponents((const float*)&modelMatrix, (float*)&transform.position, (float*)&transform.rotation, (float*)&transform.scale);
+    }
+
+    ImGui::ShowDemoWindow();
+
     // show viewer
     ResourceViewer::RenderUI();
     
-    //
+    // show frame graph
     graphicEditor->RenderUI();
 }
 

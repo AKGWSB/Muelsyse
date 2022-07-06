@@ -11,9 +11,6 @@
 #include "../Editor/Actor.h"
 #include "../Editor/Editor.h"
 
-// App resources.
-Camera* camera;
-
 RenderTexture* RT_basePass;
 RenderTexture* RT_final;
 DepthTexture* RT_basePassDepth;
@@ -39,11 +36,6 @@ Engine::~Engine()
 void Engine::OnInit()
 {
 	GraphicContex::Init(g_width, g_height, g_hwnd);
-
-    // 
-    camera = new Camera(g_width, g_height);
-    camera->SetPosition(XMFLOAT3(0, 1, -4));
-    camera->SetTarget(XMFLOAT3(0, 0, 0));
 
     // create rt
     RenderTexture* RT_basePass = RenderTexture::Create("RT_basePass", g_width, g_height, DXGI_FORMAT_R32G32B32A32_FLOAT);
@@ -72,8 +64,14 @@ void Engine::OnInit()
 
     // init scene
     {
+        // create and bind mainCamera
+        Camera camera(g_width, g_height);
+        camera.SetPosition(XMFLOAT3(0, 1, -4));
+        camera.SetTarget(XMFLOAT3(0, 0, 0));
+
         scene = std::make_unique<Scene>();
         scene->LoadFromFile("Asset/default_scene.json");
+        scene->cameraPool["mainCamera"] = camera;
     }
 
     // init editor
@@ -101,6 +99,8 @@ void Engine::OnRender()
 {
 	GraphicContex::PreRender();
 	
+    Camera* camera = &scene->cameraPool["mainCamera"];
+
     // first pass
     GraphicContex::RenderLoop(camera, basePass.get(), scene->GetRenderObjects());
     

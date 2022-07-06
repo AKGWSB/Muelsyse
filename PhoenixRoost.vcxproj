@@ -31,6 +31,7 @@
     <ClCompile Include="Editor\ResourceViewer.cpp" />
     <ClCompile Include="Editor\Scene.cpp" />
     <ClCompile Include="Library\imgui\imgui.cpp" />
+    <ClCompile Include="Library\imgui\ImGuizmo.cpp" />
     <ClCompile Include="Library\imgui\imgui_demo.cpp" />
     <ClCompile Include="Library\imgui\imgui_draw.cpp" />
     <ClCompile Include="Library\imgui\imgui_impl_dx12.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="Editor\Scene.h" />
     <ClInclude Include="Library\imgui\imconfig.h" />
     <ClInclude Include="Library\imgui\imgui.h" />
+    <ClInclude Include="Library\imgui\ImGuizmo.h" />
     <ClInclude Include="Library\imgui\imgui_impl_dx12.h" />
     <ClInclude Include="Library\imgui\imgui_impl_win32.h" />
     <ClInclude Include="Library\imgui\imgui_internal.h" />

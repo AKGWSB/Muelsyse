@@ -144,6 +144,9 @@
     <ClCompile Include="Editor\GraphNode.cpp">
       <Filter>源文件\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Library\imgui\ImGuizmo.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\d3dx12.h">
@@ -256,6 +259,9 @@
     </ClInclude>
     <ClInclude Include="Editor\GraphNode.h">
       <Filter>头文件\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\ImGuizmo.h">
+      <Filter>Library\imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

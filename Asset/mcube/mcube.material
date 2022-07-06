@@ -1,1 +1,1 @@
-{"shader":"Shaders/unlit.hlsl","textures":[{"name":"_ChangYeLingGuang","path":"Asset/test2.jpg"},{"name":"_ChaoAiBaiJin","path":"Asset/test3.jpg"},{"name":"_DesertYears","path":"Asset/test0.jpg"},{"name":"_GanQingImpact","path":"Asset/test1.png"},{"name":"mainTex","path":"Asset/wall.jpg"}]}
+{"shader":"Shaders/unlit.hlsl","textures":[{"name":"_ChaoAiBaiJin","path":"Asset/test3.jpg"},{"name":"_DesertYears","path":"Asset/test0.jpg"},{"name":"_GanQingImpact","path":"Asset/test1.png"},{"name":"mainTex","path":"Asset/test2.jpg"}]}
