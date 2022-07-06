@@ -14,26 +14,26 @@ Transform::~Transform()
 
 XMMATRIX Transform::GetTransformMatrix()
 {
-	/*
+	
 	XMMATRIX rotx = XMMatrixRotationX(XMConvertToRadians(rotation.x));
 	XMMATRIX roty = XMMatrixRotationY(XMConvertToRadians(rotation.y));
 	XMMATRIX rotz = XMMatrixRotationZ(XMConvertToRadians(rotation.z));
 	XMMATRIX m_rotation = rotx * roty * rotz;
-	*/
-
+	
+	/*
 	XMFLOAT3 rpy = XMFLOAT3(
 		XMConvertToRadians(rotation.x), 
 		XMConvertToRadians(rotation.y), 
 		XMConvertToRadians(rotation.z)
 	);
-	XMMATRIX m_rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rpy));
+	XMMATRIX m_rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rpy));*/
 
 	XMMATRIX m_translate = XMMatrixTranslation(position.x, position.y, position.z);
 	XMMATRIX m_scale = XMMatrixScaling(scale.x, scale.y, scale.z);
 
 	// 返回之前需要转置
 	// 并且因为是右乘矩阵, 变换顺序从左到右
-	return XMMatrixTranspose(m_rotation * m_scale * m_translate);
+	return XMMatrixTranspose(m_scale * m_rotation * m_translate);
 }
 
 void Transform::ApplyTransform(const Transform& t)

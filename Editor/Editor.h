@@ -13,6 +13,7 @@
 #include "../Library/imgui/imgui.h"
 #include "../Library/imgui/imgui_impl_win32.h"
 #include "../Library/imgui/imgui_impl_dx12.h"
+#include "../Library/imgui/ImGuizmo.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -38,6 +39,10 @@ private:
 
 	// render imgui to screen
 	std::unique_ptr<RenderPass> emptyRenderPass;
+
+	// var for gizmos
+	ImGuizmo::OPERATION mCurrentGizmoOperation = ImGuizmo::OPERATION(ImGuizmo::TRANSLATE);
+	ImGuizmo::MODE mCurrentGizmoMode = ImGuizmo::MODE(ImGuizmo::WORLD);
 
 	// render for ImGui
 	void PreGUI();			// call before render GUI

@@ -2,7 +2,6 @@
 
 #include "../Core/helper.h"
 #include "../Core/GraphicContex.h"
-#include "../Library/imgui/ImGuizmo.h"
 
 #include "ResourceViewer.h"
 
@@ -135,22 +134,30 @@ void Editor::RenderDetailPanel()
         ImGui::Dummy(ImVec2(0.0f, 10.0f));
         if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            // select manipulate mode
+            if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+            {
+                mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+                mCurrentGizmoMode = ImGuizmo::WORLD;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+            {
+                mCurrentGizmoOperation = ImGuizmo::ROTATE;
+                mCurrentGizmoMode = ImGuizmo::LOCAL;
+            }
+                
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+            {
+                mCurrentGizmoOperation = ImGuizmo::SCALE;
+                mCurrentGizmoMode = ImGuizmo::LOCAL;
+            }
 
-            Transform& t = currencSelectedActor->transform;
-
-            float u[3] = { t.position.x, t.position.y, t.position.z };
-            float v[3] = { t.rotation.x, t.rotation.y, t.rotation.z };
-            float w[3] = { t.scale.x, t.scale.y, t.scale.z };
-
-            /**/
-            ImGui::InputFloat3("position", u, "%.1f");
-            t.position = XMFLOAT3(u[0], u[1], u[2]);
-
-            ImGui::InputFloat3("rotation", v, "%.1f");
-            t.rotation = XMFLOAT3(v[0], v[1], v[2]);
-
-            ImGui::InputFloat3("scale", w, "%.1f");
-            t.scale = XMFLOAT3(w[0], w[1], w[2]);
+            Transform& transform = currencSelectedActor->transform;
+            ImGui::InputFloat3("position", (float*)&transform.position);
+            ImGui::InputFloat3("rotation", (float*)&transform.rotation);
+            ImGui::InputFloat3("scale", (float*)&transform.scale);
 
             ImGui::TreePop();
         }
@@ -502,41 +509,32 @@ void Editor::RenderGUI()
 
     // show guizmo
     {
-        
         Transform& transform = currencSelectedActor->transform;
         Camera& mainCamera = scene->cameraPool["mainCamera"];
         
+        // xm to float array
         XMMATRIX _modelMatrix = XMMatrixTranspose(transform.GetTransformMatrix());
         XMMATRIX _viewMatrix = XMMatrixTranspose(mainCamera.GetViewMatrix());
         XMMATRIX _projectionMatrix = XMMatrixTranspose(mainCamera.GetProjectionMatrix());
-        /*
-        XMMATRIX _modelMatrix = currencSelectedActor->transform.GetTransformMatrix();
-        XMMATRIX _viewMatrix = mainCamera.GetViewMatrix();
-        XMMATRIX _projectionMatrix = mainCamera.GetProjectionMatrix(); */
 
         XMFLOAT4X4 modelMatrix, viewMatrix, projectionMatrix;
         XMStoreFloat4x4(&modelMatrix, _modelMatrix);
         XMStoreFloat4x4(&viewMatrix, _viewMatrix);
         XMStoreFloat4x4(&projectionMatrix, _projectionMatrix);
 
-        /**/
-        static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
-        static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
-
-        
-        //ImGuizmo::RecomposeMatrixFromComponents((const float*)&transform.position, (const float*)&transform.rotation, (const float*)&transform.scale, (float*)&modelMatrix);
-
         ImGuiIO& io = ImGui::GetIO();
         ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
         ImGuizmo::Manipulate(
             (const float*)&viewMatrix, (const float*)&projectionMatrix, 
             mCurrentGizmoOperation, mCurrentGizmoMode, 
-            (float*)&modelMatrix, NULL, NULL);
+            (float*)&modelMatrix, NULL, NULL
+        );
 
         ImGuizmo::DecomposeMatrixToComponents((const float*)&modelMatrix, (float*)&transform.position, (float*)&transform.rotation, (float*)&transform.scale);
     }
 
-    ImGui::ShowDemoWindow();
+    // for debug
+    //ImGui::ShowDemoWindow();
 
     // show viewer
     ResourceViewer::RenderUI();
