@@ -4,6 +4,7 @@
 #include "../Core/GraphicContex.h"
 
 #include "ResourceViewer.h"
+#include "../Core/Timer.h"
 
 Editor::Editor()
 {
@@ -541,6 +542,39 @@ void Editor::RenderGUI()
     
     // show frame graph
     graphicEditor->RenderUI();
+
+    // handle input
+    double delta_time = 1.0f / 60.0f;
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left | ImGuiMouseButton_Left, true))
+    {
+
+    }
+
+    float moveFront = 0.0f;
+    float moveRight = 0.0f;
+    if (ImGui::IsKeyDown(ImGuiKey_W))
+    {
+        moveFront += 1.0f;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_S))
+    {
+        moveFront -= 1.0f;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_A))
+    {
+        moveRight -= 1.0f;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_D))
+    {
+        moveRight += 1.0f;
+    }
+
+    Camera& mainCamera = scene->cameraPool["mainCamera"];
+    XMFLOAT3 cameraPosition = mainCamera.GetPosition();
+    cameraPosition.x += moveRight * 5.0f * delta_time;
+    cameraPosition.z += moveFront * 5.0f * delta_time;
+    mainCamera.SetPosition(cameraPosition);
 }
 
 void Editor::Render()

@@ -1,17 +1,13 @@
 #pragma once
 
-#include <wrl.h>
 #include "Timer.h"
 
 class Engine
 {
+private:
+	Timer m_timer;
+
 public:
-	int g_width;
-	int g_height;
-	HWND g_hwnd;
-
-	Timer timer;
-
 	Engine();
 	~Engine();
 

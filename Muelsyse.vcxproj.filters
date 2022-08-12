@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="源文件\Core">
+      <UniqueIdentifier>{0cac3020-5573-49e4-b65f-09dec005f79d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Core">
+      <UniqueIdentifier>{0e43058e-12ad-42ca-9318-8a54c0988573}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library">
+      <UniqueIdentifier>{0428aadd-4cb4-4fd2-9bd6-206a7ac8a332}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\imgui">
+      <UniqueIdentifier>{19140354-2d62-4b9a-abef-dcbbb4eacf63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\json11">
+      <UniqueIdentifier>{9112366e-5418-4479-b697-8d4f318b13e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\DirectXTK">
+      <UniqueIdentifier>{3ef91bb9-84ed-4b15-ad1c-ae926f164a3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Resource">
+      <UniqueIdentifier>{cd2fad13-c21b-4e7c-80d1-feaead0cea14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Resource">
+      <UniqueIdentifier>{1c6acb7e-84eb-4f98-b856-b2462cb887d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Rendering">
+      <UniqueIdentifier>{5ed07fa4-3265-4e0f-bd80-8dc2ec440df6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Rendering">
+      <UniqueIdentifier>{e12a527e-ff19-4693-a5b4-50627995a7d0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Win32App.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Engine.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Timer.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\json11\json11.cpp">
+      <Filter>Library\json11</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui_demo.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui_draw.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui_impl_dx12.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui_impl_win32.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui_tables.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imgui_widgets.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\ImGuizmo.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\imgui\imnodes.cpp">
+      <Filter>Library\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\GraphicContex.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DescriptorManager.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\UploadBuffer.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\Shader.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\Texture2D.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Transform.cpp">
+      <Filter>源文件\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\Mesh.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\helper.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Timer.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Win32App.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Engine.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\stb_image.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\tiny_obj_loader.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\json11\json11.hpp">
+      <Filter>Library\json11</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imconfig.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imgui.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imgui_impl_dx12.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imgui_impl_win32.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imgui_internal.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\ImGuizmo.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imnodes.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imnodes_internal.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imstb_rectpack.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imstb_textedit.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\imgui\imstb_truetype.h">
+      <Filter>Library\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\d3dx12.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\GraphicContex.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DescriptorManager.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\DirectXTK\SimpleMath.h">
+      <Filter>Library\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\UploadBuffer.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Shader.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Texture2D.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Transform.h">
+      <Filter>头文件\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Mesh.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

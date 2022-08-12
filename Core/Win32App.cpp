@@ -2,7 +2,7 @@
 
 int Win32App::m_width = 1600;
 int Win32App::m_height = 900;
-std::wstring Win32App::m_title = L"PhoenixRoost";
+std::wstring Win32App::m_title = L"Muelsyse";
 HWND Win32App::m_hwnd = nullptr;
 
 int Win32App::Run(Engine* pEngine, HINSTANCE hInstance, int nCmdShow)
@@ -14,7 +14,7 @@ int Win32App::Run(Engine* pEngine, HINSTANCE hInstance, int nCmdShow)
     windowClass.lpfnWndProc = WindowProc;
     windowClass.hInstance = hInstance;
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    windowClass.lpszClassName = L"PhoenixRoost";
+    windowClass.lpszClassName = L"Muelsyse";
     RegisterClassEx(&windowClass);
 
     RECT windowRect = { 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
@@ -35,9 +35,6 @@ int Win32App::Run(Engine* pEngine, HINSTANCE hInstance, int nCmdShow)
         pEngine);
 
     // Initialize the engine
-    pEngine->g_width = m_width;
-    pEngine->g_height = m_height;
-    pEngine->g_hwnd = m_hwnd;
     pEngine->OnInit();
 
     ShowWindow(m_hwnd, nCmdShow);

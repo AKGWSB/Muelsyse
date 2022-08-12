@@ -1,19 +1,22 @@
 #pragma once
 
-#include <DirectXMath.h>
+#include "../Library/DirectXTK/SimpleMath.h"
 
-using namespace DirectX;
+using namespace DirectX::SimpleMath;
 
 class Transform
 {
 public:
-	XMFLOAT3 position;
-	XMFLOAT3 rotation;	// XYZ Öá Ðý×ª½Ç¶È
-	XMFLOAT3 scale;
+	Vector3 translate;
+	Vector3 rotation;
+	Vector3 scale = Vector3(1, 1, 1);
+
 	Transform();
 	~Transform();
 
-	XMMATRIX GetTransformMatrix();
-	void ApplyTransform(const Transform& t);
-	XMFLOAT3 Trans(const XMFLOAT3& v);
+	void Apply(Transform& t);
+	void Apply(Vector3& t);
+
+	Matrix GetTransformMatrix();
 };
+

@@ -1,38 +1,36 @@
 #pragma once
 
-#include "Buffer.h"
 #include <memory>
-#include <map>
-#include <string>
-#include <vector>
-#include <DirectXMath.h>
+#include <wrl.h>
+
+#include "../Core/DescriptorManager.h"
+#include "../Core/d3dx12.h"
+#include "../Library/DirectXTK/SimpleMath.h"
+
+using namespace DirectX::SimpleMath;
 
 struct Vertex
 {
-	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT2 texcoord;
-	DirectX::XMFLOAT3 normal;
-	DirectX::XMFLOAT3 tangent;
+	Vector3 position;
+	Vector2 texcoord;
+	Vector3 normal;
+	Vector3 tangent;
 };
 
 class Mesh
 {
+private:
+	UINT m_triangleNum = 0;
+	ComPtr<ID3D12Resource> m_vertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+
+	void LoadFromData(std::vector<Vertex>& vertices);
+
 public:
-	std::string name;
-	std::vector<Vertex> vertices;
-	std::unique_ptr<Buffer> vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-	Mesh(std::string filepath);
 	Mesh();
 	~Mesh();
-	void GenerateTriangle();
-	void GenerateQuad();
-	void Upload();
-	void Draw();
-	void LoadObj(std::string filepath);
 
-	// global resource pool, find by filename
-	static std::map<std::string, std::unique_ptr<Mesh>> g_meshResourceMap;
-	static Mesh* Find(std::string filepath);
-	static void FreeAll();
+	void Draw();
 };
+
+

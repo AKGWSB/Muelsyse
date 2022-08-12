@@ -1,10 +1,9 @@
 #include "Transform.h"
 
+
 Transform::Transform()
 {
-	position = XMFLOAT3(0, 0, 0);
-	rotation = XMFLOAT3(0, 0, 0);
-	scale    = XMFLOAT3(1, 1, 1);
+
 }
 
 Transform::~Transform()
@@ -12,42 +11,24 @@ Transform::~Transform()
 
 }
 
-XMMATRIX Transform::GetTransformMatrix()
+void Transform::Apply(Transform& t)
 {
-	
-	XMMATRIX rotx = XMMatrixRotationX(XMConvertToRadians(rotation.x));
-	XMMATRIX roty = XMMatrixRotationY(XMConvertToRadians(rotation.y));
-	XMMATRIX rotz = XMMatrixRotationZ(XMConvertToRadians(rotation.z));
-	XMMATRIX m_rotation = rotx * roty * rotz;
-	
-	/*
-	XMFLOAT3 rpy = XMFLOAT3(
-		XMConvertToRadians(rotation.x), 
-		XMConvertToRadians(rotation.y), 
-		XMConvertToRadians(rotation.z)
-	);
-	XMMATRIX m_rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rpy));*/
 
-	XMMATRIX m_translate = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX m_scale = XMMatrixScaling(scale.x, scale.y, scale.z);
-
-	// 返回之前需要转置
-	// 并且因为是右乘矩阵, 变换顺序从左到右
-	return XMMatrixTranspose(m_scale * m_rotation * m_translate);
 }
 
-void Transform::ApplyTransform(const Transform& t)
+void Transform::Apply(Vector3& t)
 {
-	
+
 }
 
-XMFLOAT3 Transform::Trans(const XMFLOAT3& v)
+Matrix Transform::GetTransformMatrix()
 {
-	XMFLOAT4 v4 = XMFLOAT4(v.x, v.y, v.z, 1.0);
-	XMVECTOR V = XMLoadFloat4(&v4);
-	XMMATRIX m = XMMatrixTranspose(GetTransformMatrix());
+	const double PI = 3.1415926f;
+	auto r = Matrix::CreateRotationX(rotation.x * PI / 180.0f) * Matrix::CreateRotationY(rotation.y * PI / 180.0f) * Matrix::CreateRotationZ(rotation.z * PI / 180.0f);
+	auto t = Matrix::CreateTranslation(translate);
+	auto s = Matrix::CreateScale(scale);
 
-	XMFLOAT3 res;
-	XMStoreFloat3(&res, XMVector4Transform(V, m));
-	return res;
+	auto m = (s * r * t).Transpose();
+
+	return m;
 }

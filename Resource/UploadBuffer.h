@@ -1,31 +1,30 @@
 #pragma once
 
 #include <vector>
-#include <map>
-#include <string>
 #include <wrl.h>
-#include <d3d12.h>
-#include <DirectXMath.h>
 
+#include "../Core/DescriptorManager.h"
 #include "../Core/d3dx12.h"
 
 using Microsoft::WRL::ComPtr;
-using namespace DirectX;
 
 class UploadBuffer
 {
+private:
+	UINT m_size;
+	Descriptor m_cbvDescriptor;
+	std::vector<BYTE> m_bufferData;
+	ComPtr<ID3D12Resource> m_buffer;
+	void* m_mappedGpuAddress;
+
 public:
-	UINT bufferSize;
-	ComPtr<ID3D12Resource> buffer;
-	std::vector<BYTE> data;		// data in cpu
-
-	CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCpuHandle;		// cpu handle for cbv descriptor
-	CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGpuHandle;		// gpu handle for cbv descriptor
-	UINT cbvHandleIndex;							// index in cbv descriptor heap
-
-	UploadBuffer();
+	UploadBuffer(UINT size = 4096);
 	~UploadBuffer();
-	void CreateBuffer(UINT size);
+
+	void UpdateSubData(UINT startByte, UINT size, void* pData);
 	void Upload();
-	void UpdateSubData(UINT start, UINT size, void* src);
+
+	CD3DX12_GPU_DESCRIPTOR_HANDLE GetGpuHandle();
 };
+
+

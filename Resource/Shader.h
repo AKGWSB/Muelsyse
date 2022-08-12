@@ -5,9 +5,11 @@
 #include <wrl.h>
 #include <map>
 
-#include "Texture2D.h"
 #include "UploadBuffer.h"
+#include "Texture2D.h"
+#include "../Library/DirectXTK/SimpleMath.h"
 
+using namespace DirectX::SimpleMath;
 using Microsoft::WRL::ComPtr;
 
 struct TextureBindDesc
@@ -20,7 +22,6 @@ struct TextureBindDesc
 
 struct CbufferVariableDesc
 {
-	BYTE data[64];
 	int offset;
 	int size;
 };
@@ -28,7 +29,7 @@ struct CbufferVariableDesc
 struct CbufferBindDesc
 {
 	UploadBuffer* cbuffer = NULL;
-	std::map<std::string, CbufferVariableDesc> variables;
+	std::map<std::string, CbufferVariableDesc> variableDescMap;
 	int bindRegister;
 	int bindRegisterSpace;
 	int rootParameterIndex;		// index in root parameter, -1 represent resource not found in shader
@@ -36,35 +37,28 @@ struct CbufferBindDesc
 
 class Shader
 {
+private:
+	// binding infomation from shader code reflection
+	std::unordered_map<std::string, TextureBindDesc> m_textureBindInfoMap;
+	std::unordered_map<std::string, CbufferBindDesc> m_cbufferBindInfoMap;
+
+	void LoadFromFile(std::string filepath);
+	void CreateRootSignature();
+
 public:
 	std::string name;
 
-	ComPtr<ID3D12RootSignature> rootSignature;
-	ComPtr<ID3DBlob> vertexShaderByteCode;
-	ComPtr<ID3DBlob> pixelShaderByteCode;
-	
-	// binding infomation from shader code reflection
-	std::map<std::string, TextureBindDesc> textureBindInfo;
-	std::map<std::string, CbufferBindDesc> cbufferBindInfo;
+	ComPtr<ID3D12RootSignature> m_rootSignature;
+	ComPtr<ID3DBlob> m_vertexShaderByteCode;
+	ComPtr<ID3DBlob> m_pixelShaderByteCode;
 
 	Shader(std::string filepath);
 	~Shader();
-	void LoadFromFile(std::string filepath);
-	void RecordReflectionInfo();
-	void CreateRootSignature();
-	void Activate();
-
-	// if a texture is ref in hlsl code, but our shader not set it
-	// the texture will be replace to a "TEXTURE_NOT_FOUND.png" for debug
-	void DeActivateForDebug();
 
 	void SetTexture(std::string textureName, Texture2D* src);
 	void SetCbuffer(std::string bufferName, UploadBuffer* src);
-	void SetMatrix(std::string bufferName, std::string varName, XMMATRIX src);
-	void SetFloat4(std::string bufferName, std::string varName, XMFLOAT4 src);
-
-	// global resource pool, find by filename
-	static std::map<std::string, std::unique_ptr<Shader>> g_shaderResourceMap;
-	static Shader* Find(std::string filepath);
-	static void FreeAll();
+	void SetMatrix(std::string bufferName, std::string varName, Matrix src);
+	void SetFloat4(std::string bufferName, std::string varName, Vector4 src);
+	
+	void Activate();
 };

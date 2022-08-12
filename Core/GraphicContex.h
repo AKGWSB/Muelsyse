@@ -4,70 +4,73 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <memory>
+#include <map>
 
-#include "DescriptorHeap.h"
-#include "../Resource/Mesh.h"
-#include "../Resource/Shader.h"
-#include "../Resource/Texture2D.h"
-#include "../Resource/UploadBuffer.h"
-#include "../Rendering/RenderTexture.h"
-#include "../Rendering/RenderPass.h"
-#include "../Rendering/Camera.h"
-#include "../Editor/Actor.h"
+#include "Engine.h"
+#include "DescriptorManager.h"
+#include "../Library/DirectXTK/SimpleMath.h"
 
+class Engine;
+
+using namespace DirectX::SimpleMath;
 using Microsoft::WRL::ComPtr;
-
-class DescriptorHeap;
-class Buffer;
-class Shader;
-class Mesh;
-class Texture2D;
-class UploadBuffer;
 
 class GraphicContex
 {
-public:
-    static int screenWidth;
-    static int screenHeight;
-    static const UINT FrameCount = 2;
+    friend class Engine;
+
+private:
+    int screenWidth;
+    int screenHeight;
+    static const UINT m_frameCount = 2;
+
+    // command
+    ComPtr<ID3D12CommandQueue> m_commandQueue;
+    ComPtr<ID3D12CommandAllocator> m_commandAllocator;
+    ComPtr<ID3D12GraphicsCommandList> m_commandList;
 
     // Pipeline objects.
-    static ComPtr<IDXGISwapChain3> g_swapChain;
-    static ComPtr<ID3D12Device> g_device;
-
-    // frame resource
-    static UINT m_rtvIndices[FrameCount];
-    static ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-
-    static ComPtr<ID3D12CommandAllocator> g_commandAllocator;
-    static ComPtr<ID3D12CommandQueue> g_commandQueue;
-    static ComPtr<ID3D12GraphicsCommandList> g_commandList;
-
-    // descriptor heaps
-    static std::unique_ptr<DescriptorHeap> g_rtvHeap;   // render target view
-    static std::unique_ptr<DescriptorHeap> g_srvHeap;   // shader resource view
-    static std::unique_ptr<DescriptorHeap> g_splHeap;   // sampler view
-    static std::unique_ptr<DescriptorHeap> g_dsvHeap;   // depth stencil
+    ComPtr<IDXGISwapChain3> m_swapChain;
+    ComPtr<ID3D12Device> m_device;
 
     // Synchronization objects.
-    static UINT m_frameIndex;
-    static HANDLE m_fenceEvent;
-    static ComPtr<ID3D12Fence> m_fence;
-    static UINT64 m_fenceValue;
+    HANDLE m_fenceEvent;
+    ComPtr<ID3D12Fence> m_fence;
+    UINT64 m_fenceValue;
 
-    static void Init(int width, int height, HWND hwnd);
-    static void PreRender();
-    static void Render();
-    static void PostRender();
-    static void Destory();
+    // frame resource
+    UINT m_currentBackBufferIndex;
+    ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
+    ComPtr<ID3D12Resource> m_renderTargets[m_frameCount];
+    Descriptor m_renderTargetViews[m_frameCount];
 
-    static void WaitForPreviousFrame();
-    static ID3D12Resource* GetScreenRenderTarget();
+    void Init();
 
-    static void SetViewport(int width, int height);
-    static void ClearRenderTarget(RenderPass* pass, XMFLOAT3 clearColor);
-    static void SetRenderTarget(RenderPass* pass);
-    static void RenderLoop(Camera* camera, RenderPass* renderPass, const std::vector<Actor*>& renderObjects);
+    GraphicContex();
+    GraphicContex(const GraphicContex&);
+    GraphicContex& operator=(const GraphicContex&);
+
+    void WaitForGpu();
+
+    // called by Engine as friend class
+    void Begin();   // before populate
+    void End();     // after populate, swap and present current frame
+
+public:
+    ~GraphicContex() { };
+
+    // single ton
+    static GraphicContex* GetInstance();
+
+    ID3D12Device* GetDevice();   
+    ID3D12GraphicsCommandList* GetCommandList();
+
+    // exe and wait gpu
+    void SyncExecute(ID3D12GraphicsCommandList* cmdList);    
+
+    void SetRenderTarget();
+    void ClearRenderTarget(Vector3 clearColor);
+    void SetViewPort(Vector4 rect);
 };
 
 void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter = true);

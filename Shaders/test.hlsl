@@ -38,8 +38,8 @@ PSInput VSMain(
 
     float4 p = position;
     p = mul(p, modelMatrix);
-    p = mul(p, viewMatrix);
-    p = mul(p, projectionMatrix);
+    //p = mul(p, viewMatrix);
+    //p = mul(p, projectionMatrix);
 
     result.position = p;
     result.texcoord = texcoord;

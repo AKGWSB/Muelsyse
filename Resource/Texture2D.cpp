@@ -1,6 +1,6 @@
 #include "Texture2D.h"
-#include "../Core/helper.h"
 #include "../Core/GraphicContex.h"
+#include "../Core/helper.h"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -8,127 +8,35 @@
 
 #include "../Library/stb_image.h"
 
-Texture2D::Texture2D(int _width, int _height, DXGI_FORMAT _format, D3D12_RESOURCE_FLAGS _flags, D3D12_RESOURCE_STATES _state)
-{
-    // alloc descriptor from global heap
-    srvHandleIndex = GraphicContex::g_srvHeap->AllocDescriptor();
-    srvCpuHandle = GraphicContex::g_srvHeap->GetCpuHandle(srvHandleIndex);
-    srvGpuHandle = GraphicContex::g_srvHeap->GetGpuHandle(srvHandleIndex);
-
-    samplerHandleIndex = GraphicContex::g_splHeap->AllocDescriptor();
-    samplerCpuHandle = GraphicContex::g_splHeap->GetCpuHandle(samplerHandleIndex);
-    samplerGpuHandle = GraphicContex::g_splHeap->GetGpuHandle(samplerHandleIndex);
-
-    width = _width;
-    height = _height;
-    format = _format;
-
-    // special for depth buffer 
-    bool isDepthTex = (format == DXGI_FORMAT_D24_UNORM_S8_UINT);
-
-    // Describe and create a Texture2D.
-    D3D12_RESOURCE_DESC textureDesc = {};
-    textureDesc.MipLevels = 1;
-    textureDesc.Format = format;
-    textureDesc.Width = width;
-    textureDesc.Height = height;
-    textureDesc.Flags = _flags;
-    textureDesc.DepthOrArraySize = 1;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.SampleDesc.Quality = 0;
-    textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-    D3D12_CLEAR_VALUE clearValue = {};
-    clearValue.Format = textureDesc.Format;
-    clearValue.Color[0] = 0.5f;
-    clearValue.Color[1] = 0.5f;
-    clearValue.Color[2] = 0.5f;
-    clearValue.Color[3] = 1.0f;
-    if (isDepthTex)
-    {
-        clearValue.DepthStencil.Depth = 1.0f;
-        clearValue.DepthStencil.Stencil = 0;
-    }
-
-    auto hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    ThrowIfFailed(GraphicContex::g_device->CreateCommittedResource(
-        &hp,
-        D3D12_HEAP_FLAG_NONE,
-        &textureDesc,
-        _state,
-        &clearValue,
-        IID_PPV_ARGS(&buffer)));
-
-    // Describe and create a SRV for the texture.
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Format = isDepthTex ? DXGI_FORMAT_R24_UNORM_X8_TYPELESS : textureDesc.Format;
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
-    GraphicContex::g_device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvCpuHandle);
-
-    // create sampler descriptor
-    D3D12_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-    samplerDesc.MipLODBias = 0.0f;
-    samplerDesc.MaxAnisotropy = 1;
-    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-    GraphicContex::g_device->CreateSampler(&samplerDesc, samplerCpuHandle);
-}
-
 Texture2D::Texture2D(std::string filepath)
 {
-	LoadFromFile(filepath);
+    LoadFromFile(filepath);
 }
 
 Texture2D::~Texture2D()
 {
-    GraphicContex::g_srvHeap->FreeDescriptor(srvHandleIndex);
-    GraphicContex::g_splHeap->FreeDescriptor(samplerHandleIndex);
+    //OutputDebugStringA("Texture2D de cons\n");
+	DescriptorManager* descManager = DescriptorManager::GetInstance();
+	descManager->FreeDescriptor(m_srvDescriptor);
 }
 
-void Texture2D::LoadFromFile(std::string filepath)
+void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt)
 {
-    name = filepath;
+    DescriptorManager* descManager = DescriptorManager::GetInstance();
+    GraphicContex* contex = GraphicContex::GetInstance();
+    ID3D12Device* device = contex->GetDevice();
 
-    // alloc descriptor from global heap
-    srvHandleIndex = GraphicContex::g_srvHeap->AllocDescriptor();
-    srvCpuHandle = GraphicContex::g_srvHeap->GetCpuHandle(srvHandleIndex);
-    srvGpuHandle = GraphicContex::g_srvHeap->GetGpuHandle(srvHandleIndex);
+    width = w;
+    height = h;
+    m_format = fmt;
 
-    samplerHandleIndex = GraphicContex::g_splHeap->AllocDescriptor();
-    samplerCpuHandle = GraphicContex::g_splHeap->GetCpuHandle(samplerHandleIndex);
-    samplerGpuHandle = GraphicContex::g_splHeap->GetGpuHandle(samplerHandleIndex);
-
-    // create temp alloctor, list and queue for copy command
-    ComPtr<ID3D12CommandAllocator> tempCommandAllocator;
-    ComPtr<ID3D12GraphicsCommandList> tempCommandList;
-    ComPtr<ID3D12CommandQueue> tempCommandQueue;
-
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    queueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.NodeMask = 0;
-
-    ThrowIfFailed(GraphicContex::g_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&tempCommandAllocator)));
-    ThrowIfFailed(GraphicContex::g_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, tempCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&tempCommandList)));
-    ThrowIfFailed(GraphicContex::g_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempCommandQueue)));
-
-    // read data from file
-    int nChannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nChannels, 4);
+    // alloc d
+	m_srvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Describe and create a Texture2D.
     D3D12_RESOURCE_DESC textureDesc = {};
     textureDesc.MipLevels = 1;
-    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Format = m_format;
     textureDesc.Width = width;
     textureDesc.Height = height;
     textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
@@ -138,23 +46,32 @@ void Texture2D::LoadFromFile(std::string filepath)
     textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
     auto hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    ThrowIfFailed(GraphicContex::g_device->CreateCommittedResource(
+    ThrowIfFailed(device->CreateCommittedResource(
         &hp,
         D3D12_HEAP_FLAG_NONE,
         &textureDesc,
         D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr,
-        IID_PPV_ARGS(&buffer)));
+        IID_PPV_ARGS(&m_buffer)));
+}
+
+void Texture2D::LoadFromData(int w, int h, DXGI_FORMAT fmt, void* pData, UINT pixelByteSize)
+{
+    GraphicContex* contex = GraphicContex::GetInstance();
+    ID3D12Device* device = contex->GetDevice();
+    ID3D12GraphicsCommandList* cmdList = contex->GetCommandList();
+
+    CreateEmpty(w, h, fmt);
 
     // warning : for texture2D, buffer size always bigger than 1D buffer
     // using [size = width * height * 4] will cause some problems ...
-    const UINT64 uploadBufferSize = GetRequiredIntermediateSize(buffer.Get(), 0, 1);
+    const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_buffer.Get(), 0, 1);
 
     // Create the GPU upload buffer.
     ComPtr<ID3D12Resource> textureUploadHeap;
     auto uhp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     auto ubf = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-    ThrowIfFailed(GraphicContex::g_device->CreateCommittedResource(
+    ThrowIfFailed(device->CreateCommittedResource(
         &uhp,
         D3D12_HEAP_FLAG_NONE,
         &ubf,
@@ -163,82 +80,51 @@ void Texture2D::LoadFromFile(std::string filepath)
         IID_PPV_ARGS(&textureUploadHeap)));
 
     // Copy data to the intermediate upload heap and then schedule a copy from the upload heap to the Texture2D.
-    const int TexturePixelSize = 4; // RGBA 
-
     D3D12_SUBRESOURCE_DATA textureData = {};
-    textureData.pData = data;
-    textureData.RowPitch = width * TexturePixelSize;
+    textureData.pData = pData;
+    textureData.RowPitch = width * pixelByteSize;
     textureData.SlicePitch = textureData.RowPitch * height;
 
-    UpdateSubresources(tempCommandList.Get(), buffer.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
-    auto br = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    tempCommandList->ResourceBarrier(1, &br);
+    UpdateSubresources(cmdList, m_buffer.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
+
+    // ba
+    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(m_buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    cmdList->ResourceBarrier(1, &trans);
 
     // Describe and create a SRV for the texture.
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Format = textureDesc.Format;
+    srvDesc.Format = fmt;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
-    GraphicContex::g_device->CreateShaderResourceView(buffer.Get(), &srvDesc, srvCpuHandle);
+    device->CreateShaderResourceView(m_buffer.Get(), &srvDesc, m_srvDescriptor.cpuHandle);
 
-    // create sampler descriptor
-    D3D12_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-    samplerDesc.MipLODBias = 0.0f;
-    samplerDesc.MaxAnisotropy = 1;
-    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-    GraphicContex::g_device->CreateSampler(&samplerDesc, samplerCpuHandle);
-
-    // exe cmd
-    tempCommandList->Close();
-    std::vector<ID3D12CommandList*> ppCommandLists{ tempCommandList.Get() };
-    tempCommandQueue->ExecuteCommandLists(static_cast<UINT>(ppCommandLists.size()), ppCommandLists.data());
-
-    // set fence
-    UINT64 initialValue{ 0 };
-    ComPtr<ID3D12Fence> tempFence;
-    ThrowIfFailed(GraphicContex::g_device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&tempFence)));
-
-    HANDLE tempFenceEvent{ CreateEvent(nullptr, FALSE, FALSE, nullptr) };
-    if (tempFenceEvent == NULL)
-    {
-        throw("Error creating a fence event.");
-    }
-
-    // wait for gpu
-    ThrowIfFailed(tempCommandQueue->Signal(tempFence.Get(), 1));
-    ThrowIfFailed(tempFence->SetEventOnCompletion(1, tempFenceEvent));
-    WaitForSingleObjectEx(tempFenceEvent, INFINITE, FALSE);
-
-    delete[] data;
+    // upload to gpu
+    contex->SyncExecute(cmdList);
 }
 
-void Texture2D::Create(int _width, int _height, DXGI_FORMAT _format, void* data)
+void Texture2D::LoadFromFile(std::string filepath)
 {
+    name = filepath;
+    std::string extname = filepath.substr(filepath.find_last_of(".") + 1);
 
+    if (extname == "jpg" || extname == "png")
+    {
+        // read data from file
+        int nChannels , w, h;
+        stbi_set_flip_vertically_on_load(true);
+        unsigned char* data = stbi_load(filepath.c_str(), &w, &h, &nChannels, 4);
+
+        LoadFromData(w, h, DXGI_FORMAT_R8G8B8A8_UNORM, data, 4);
+    }
+
+    if (extname == "hdr")
+    {
+
+    }
 }
 
-// global resource pool, find by filename
-std::map<std::string, std::unique_ptr<Texture2D>> Texture2D::g_textureResourceMap;
-Texture2D* Texture2D::Find(std::string filepath)
+CD3DX12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGpuHandle()
 {
-    if (g_textureResourceMap.find(filepath) == g_textureResourceMap.end())
-    {
-        g_textureResourceMap[filepath] = std::make_unique<Texture2D>(filepath);
-    }
-    return g_textureResourceMap[filepath].get();
-}
-
-void Texture2D::FreeAll()
-{
-    for (auto& p : g_textureResourceMap)
-    {
-        delete p.second.release();
-    }
+    return m_srvDescriptor.gpuHandle;
 }
