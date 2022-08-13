@@ -36,6 +36,7 @@
     <ClCompile Include="Library\json11\json11.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Rendering\Transform.cpp" />
+    <ClCompile Include="Resource\Material.cpp" />
     <ClCompile Include="Resource\Mesh.cpp" />
     <ClCompile Include="Resource\Shader.cpp" />
     <ClCompile Include="Resource\Texture2D.cpp" />
@@ -65,7 +66,9 @@
     <ClInclude Include="Library\stb_image.h" />
     <ClInclude Include="Library\tiny_obj_loader.h" />
     <ClInclude Include="Rendering\Transform.h" />
+    <ClInclude Include="Resource\Material.h" />
     <ClInclude Include="Resource\Mesh.h" />
+    <ClInclude Include="Resource\ResourceLoader.hpp" />
     <ClInclude Include="Resource\Shader.h" />
     <ClInclude Include="Resource\Texture2D.h" />
     <ClInclude Include="Resource\UploadBuffer.h" />

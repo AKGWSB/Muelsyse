@@ -8,6 +8,10 @@
 
 #include "Engine.h"
 #include "DescriptorManager.h"
+
+#include "../Resource/Mesh.h"
+#include "../Resource/Material.h"
+
 #include "../Library/DirectXTK/SimpleMath.h"
 
 class Engine;
@@ -71,6 +75,8 @@ public:
     void SetRenderTarget();
     void ClearRenderTarget(Vector3 clearColor);
     void SetViewPort(Vector4 rect);
+
+    void DrawMesh(Mesh* mesh, Material* material, ID3D12GraphicsCommandList* cmdList);
 };
 
 void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter = true);

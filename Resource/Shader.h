@@ -7,10 +7,14 @@
 
 #include "UploadBuffer.h"
 #include "Texture2D.h"
+#include "Material.h"
+
 #include "../Library/DirectXTK/SimpleMath.h"
 
 using namespace DirectX::SimpleMath;
 using Microsoft::WRL::ComPtr;
+
+class Material;
 
 struct TextureBindDesc
 {
@@ -37,6 +41,8 @@ struct CbufferBindDesc
 
 class Shader
 {
+	friend class Material;
+
 private:
 	// binding infomation from shader code reflection
 	std::unordered_map<std::string, TextureBindDesc> m_textureBindInfoMap;
@@ -55,10 +61,10 @@ public:
 	Shader(std::string filepath);
 	~Shader();
 
+	void Activate(ID3D12GraphicsCommandList* cmdList);
+
 	void SetTexture(std::string textureName, Texture2D* src);
 	void SetCbuffer(std::string bufferName, UploadBuffer* src);
 	void SetMatrix(std::string bufferName, std::string varName, Matrix src);
 	void SetFloat4(std::string bufferName, std::string varName, Vector4 src);
-	
-	void Activate();
 };

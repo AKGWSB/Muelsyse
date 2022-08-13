@@ -86,9 +86,9 @@ void Mesh::LoadFromData(std::vector<Vertex>& vertices)
     contex->SyncExecute(cmdList);
 }
 
-void Mesh::Draw()
+void Mesh::Draw(ID3D12GraphicsCommandList* cmdList)
 {
-    ID3D12GraphicsCommandList* cmdList = GraphicContex::GetInstance()->GetCommandList();
+    // ID3D12GraphicsCommandList* cmdList = GraphicContex::GetInstance()->GetCommandList();
 
     cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     cmdList->IASetVertexBuffers(0, 1, &m_vertexBufferView);

@@ -1,25 +1,30 @@
 #include <memory>
 
-#include "Engine.h"
 #include "helper.h"
-#include "GraphicContex.h"
 #include "Win32App.h"
+
+#include "Engine.h"
+#include "GraphicContex.h"
 
 #include "../Resource/Mesh.h"
 #include "../Resource/Shader.h"
 #include "../Resource/Texture2D.h"
+#include "../Resource/Material.h"
+#include "../Resource/ResourceLoader.hpp"
+
 #include "../Rendering/Transform.h"
 
 using Microsoft::WRL::ComPtr;
 
 // ---------------------------------------------------------------------- //
 
-std::unique_ptr<Mesh> m_mesh;
-std::unique_ptr<Shader> m_shader;
-std::unique_ptr<Texture2D> m_texture0;
-std::unique_ptr<Texture2D> m_texture1;
 ComPtr<ID3D12PipelineState> m_pipelineState;
+
+Shader* m_shader;
+std::unique_ptr<Mesh> m_mesh;
 std::unique_ptr<UploadBuffer> m_cbuffer;
+std::unique_ptr<Material> m_material;
+
 Transform transform;
 
 // ---------------------------------------------------------------------- //
@@ -38,15 +43,19 @@ void Engine::OnInit()
 {
     GraphicContex::GetInstance()->Init();
 
-    m_mesh = std::make_unique<Mesh>();
-    m_shader = std::make_unique<Shader>("Shaders/test.hlsl");
-    m_texture0 = std::make_unique<Texture2D>("Asset/test2.jpg");
-    m_texture1 = std::make_unique<Texture2D>("Asset/test3.jpg");
+    ResourceLoader<Texture2D>* texLoader = ResourceLoader<Texture2D>::GetInstance();
+    ResourceLoader<Shader>* shaderLoader = ResourceLoader<Shader>::GetInstance();
+
     m_cbuffer = std::make_unique<UploadBuffer>();
-   
+    m_mesh = std::make_unique<Mesh>();
+
+    m_shader = shaderLoader->Find("Shaders/test.hlsl");
     m_shader->SetCbuffer("cbPreObject", m_cbuffer.get());
-    m_shader->SetTexture("mainTex0", m_texture0.get());
-    m_shader->SetTexture("mainTex1", m_texture1.get());
+
+    m_material = std::make_unique<Material>();
+    m_material->SetShader(m_shader);
+    m_material->SetTexture("mainTex0", texLoader->Find("Asset/test2.jpg"));
+    m_material->SetTexture("mainTex1", texLoader->Find("Asset/test3.jpg"));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -87,9 +96,11 @@ void Engine::OnUpdate()
 
 void Engine::OnDestroy()
 {
-    delete m_texture0.release();
-    delete m_texture1.release();
     delete m_cbuffer.release();
+    delete m_material.release();
+
+    ResourceLoader<Texture2D>::GetInstance()->Shutdown();
+    ResourceLoader<Shader>::GetInstance()->Shutdown();
 }
 
 // ---------------------------------------------------------------------- //
@@ -108,9 +119,9 @@ void Engine::OnRender()
 
         cmdList->SetPipelineState(m_pipelineState.Get());
 
-        m_shader->SetMatrix("cbPreObject", "modelMatrix", transform.GetTransformMatrix());
-        m_shader->Activate();
-        m_mesh->Draw();
+        m_material->SetMatrix("cbPreObject", "modelMatrix", transform.GetTransformMatrix());
+        m_material->Activate(cmdList);
+        m_mesh->Draw(cmdList);
     }
     
     contex->End();

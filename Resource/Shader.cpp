@@ -8,7 +8,6 @@
 Shader::Shader(std::string filepath)
 {
     LoadFromFile(filepath);
-    name = filepath;
 }
 
 Shader::~Shader()
@@ -18,6 +17,7 @@ Shader::~Shader()
 
 void Shader::LoadFromFile(std::string filepath)
 {
+    name = filepath;
     LPCWSTR l_filepath = STRING_TO_LPCWSTR(filepath);
 
 #if defined(_DEBUG)
@@ -197,9 +197,9 @@ void Shader::CreateRootSignature()
 }
 
 // bind descriptor handle 
-void Shader::Activate()
+void Shader::Activate(ID3D12GraphicsCommandList* cmdList)
 {
-    ID3D12GraphicsCommandList* cmdList = GraphicContex::GetInstance()->GetCommandList();
+    // ID3D12GraphicsCommandList* cmdList = GraphicContex::GetInstance()->GetCommandList();
 
     // set signature
     cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
