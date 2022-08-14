@@ -8,9 +8,9 @@
 
 #include "../Library/stb_image.h"
 
-Texture2D::Texture2D(int w, int h, DXGI_FORMAT fmt)
+Texture2D::Texture2D(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS flag)
 {
-    CreateEmpty(w, h, fmt);
+    CreateEmpty(w, h, fmt, flag);
 }
 
 Texture2D::Texture2D(std::string filepath)
@@ -25,7 +25,7 @@ Texture2D::~Texture2D()
 	descManager->FreeDescriptor(m_srvDescriptor);
 }
 
-void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt)
+void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS flag)
 {
     DescriptorManager* descManager = DescriptorManager::GetInstance();
     GraphicContex* contex = GraphicContex::GetInstance();
@@ -34,6 +34,7 @@ void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt)
     width = w;
     height = h;
     m_format = fmt;
+    m_flag = flag;
 
     // alloc d
 	m_srvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -44,7 +45,7 @@ void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt)
     textureDesc.Format = m_format;
     textureDesc.Width = width;
     textureDesc.Height = height;
-    textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    textureDesc.Flags = flag;
     textureDesc.DepthOrArraySize = 1;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;

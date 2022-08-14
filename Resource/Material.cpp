@@ -42,6 +42,11 @@ void Material::SetTexture(std::string textureName, Texture2D* src)
 	m_textureMap[textureName] = src;
 }
 
+void Material::SetCbuffer(std::string bufferName, UploadBuffer* src)
+{
+	m_shader->SetCbuffer(bufferName, src);
+}
+
 void Material::SetMatrix(std::string bufferName, std::string varName, Matrix src)
 {
 	m_shader->SetMatrix(bufferName, varName, src);

@@ -28,6 +28,7 @@ public:
 
 	void SetShader(Shader* shader);
 	void SetTexture(std::string textureName, Texture2D* src);	// set to material "instance"
+	void SetCbuffer(std::string bufferName, UploadBuffer* src);
 	void SetMatrix(std::string bufferName, std::string varName, Matrix src);
 	void SetFloat4(std::string bufferName, std::string varName, Vector4 src);
 };

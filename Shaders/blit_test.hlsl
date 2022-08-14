@@ -37,7 +37,7 @@ PSInput VSMain(
     PSInput result;
 
     float4 p = position;
-    p = mul(p, modelMatrix);
+    //p = mul(p, modelMatrix);
     //p = mul(p, viewMatrix);
     //p = mul(p, projectionMatrix);
 
@@ -55,8 +55,6 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     //color.rg = input.texcoord;
     color.rgb += mainTex0.Sample(DefaultSampler, input.texcoord);
-    //color.rgb += mainTex0.Sample(DefaultSampler, input.texcoord) * 0.5;
-    //color.rgb += mainTex1.Sample(DefaultSampler, input.texcoord) * 0.5;
 
     return color;
 }

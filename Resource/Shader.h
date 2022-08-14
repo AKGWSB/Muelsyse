@@ -64,6 +64,7 @@ public:
 	void Activate(ID3D12GraphicsCommandList* cmdList);
 
 	void SetTexture(std::string textureName, Texture2D* src);
+	void SetCbuffer(std::string bufferName, UploadBuffer* src);
 	void SetMatrix(std::string bufferName, std::string varName, Matrix src);
 	void SetFloat4(std::string bufferName, std::string varName, Vector4 src);
 };

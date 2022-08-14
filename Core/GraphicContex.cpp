@@ -271,36 +271,46 @@ void GraphicContex::SyncExecute(ID3D12GraphicsCommandList* cmdList)
     ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), NULL));
 }
 
-void GraphicContex::SetRenderTarget()
+void GraphicContex::SetRenderTarget(ID3D12GraphicsCommandList* cmdList)
 {
     auto backBuffer = m_renderTargets[m_currentBackBufferIndex].Get();
     auto trans = CD3DX12_RESOURCE_BARRIER::Transition(backBuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    m_commandList->ResourceBarrier(1, &trans);
+    cmdList->ResourceBarrier(1, &trans);
 
     auto rtvHandle = m_renderTargetViews[m_currentBackBufferIndex].cpuHandle;
-    m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
+    cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
 }
 
-void GraphicContex::SetRenderTarget(std::vector<RenderTexture*>& renderTargets)
+void GraphicContex::SetRenderTarget(ID3D12GraphicsCommandList* cmdList, std::vector<RenderTexture*> renderTargets)
 {
     std::vector<CD3DX12_CPU_DESCRIPTOR_HANDLE> rtvHandles;
     for (auto& rt : renderTargets)
     {
-        // todo
+        rt->ChangeToRenderTargetState(cmdList);
+        rtvHandles.push_back(rt->GetRtvCpuHandle());
     }
+
+    cmdList->OMSetRenderTargets(rtvHandles.size(), rtvHandles.data(), FALSE, NULL);
 }
 
-void GraphicContex::ClearRenderTarget(Vector3 clearColor)
+void GraphicContex::ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, Vector3 clearColor)
 {
     auto rtvHandle = m_renderTargetViews[m_currentBackBufferIndex].cpuHandle;
     float _clearColor[4] = { clearColor.x, clearColor.y, clearColor.z, 1.0f };
-    m_commandList->ClearRenderTargetView(rtvHandle, _clearColor, 0, nullptr);
+    cmdList->ClearRenderTargetView(rtvHandle, _clearColor, 0, nullptr);
 }
 
-void GraphicContex::SetViewPort(Vector4 rect)
+void GraphicContex::ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, RenderTexture* renderTarget, Vector3 clearColor)
+{
+    auto rtvHandle = renderTarget->GetRtvCpuHandle();
+    float _clearColor[4] = { clearColor.x, clearColor.y, clearColor.z, 1.0f };
+    cmdList->ClearRenderTargetView(rtvHandle, _clearColor, 0, nullptr);
+}
+
+void GraphicContex::SetViewPort(ID3D12GraphicsCommandList* cmdList, Vector4 rect)
 {
     CD3DX12_VIEWPORT m_viewport(rect.x, rect.y, rect.z, rect.w);
     CD3DX12_RECT m_scissorRect(rect.x, rect.y, rect.z, rect.w);
-    m_commandList->RSSetViewports(1, &m_viewport);
-    m_commandList->RSSetScissorRects(1, &m_scissorRect);
+    cmdList->RSSetViewports(1, &m_viewport);
+    cmdList->RSSetScissorRects(1, &m_scissorRect);
 }

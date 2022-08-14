@@ -12,10 +12,7 @@ Shader::Shader(std::string filepath)
 
 Shader::~Shader()
 {   
-    for (auto& p : m_cbufferBindInfoMap)
-    {
-        delete p.second.cbuffer;
-    }
+
 }
 
 void Shader::LoadFromFile(std::string filepath)
@@ -139,15 +136,6 @@ void Shader::CreateRootSignature()
         info.rootParameterIndex = i;
         ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, info.bindRegister, info.bindRegisterSpace);
         i++;
-
-        // create cbuffer object
-        int cbSize = 0;
-        for (auto& pp : info.variableDescMap)
-        {
-            cbSize += pp.second.size;   // cal total size
-        }
-        cbSize = ((cbSize / CBUFFER_BYTE_ALIGN) + 1) * CBUFFER_BYTE_ALIGN;  // align to 256 B
-        info.cbuffer = new UploadBuffer(cbSize);
     }
 
     // then handle texture
@@ -244,6 +232,13 @@ void Shader::SetTexture(std::string textureName, Texture2D* src)
     if (m_textureBindInfoMap.find(textureName) == m_textureBindInfoMap.end()) return;
 
     m_textureBindInfoMap[textureName].texture = src;
+}
+
+void Shader::SetCbuffer(std::string bufferName, UploadBuffer* src)
+{
+    if (m_cbufferBindInfoMap.find(bufferName) == m_cbufferBindInfoMap.end()) return;
+
+    m_cbufferBindInfoMap[bufferName].cbuffer = src;
 }
 
 void Shader::SetMatrix(std::string bufferName, std::string varName, Matrix src)

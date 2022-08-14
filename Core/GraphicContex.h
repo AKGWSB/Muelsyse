@@ -73,10 +73,11 @@ public:
     // exe and wait gpu
     void SyncExecute(ID3D12GraphicsCommandList* cmdList);    
 
-    void SetRenderTarget();
-    void SetRenderTarget(std::vector<RenderTexture*>& renderTargets);
-    void ClearRenderTarget(Vector3 clearColor);
-    void SetViewPort(Vector4 rect);
+    void SetRenderTarget(ID3D12GraphicsCommandList* cmdList);
+    void SetRenderTarget(ID3D12GraphicsCommandList* cmdList, std::vector<RenderTexture*> renderTargets);
+    void ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, Vector3 clearColor);
+    void ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, RenderTexture* renderTarget, Vector3 clearColor);
+    void SetViewPort(ID3D12GraphicsCommandList* cmdList, Vector4 rect);
 };
 
 void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter = true);
