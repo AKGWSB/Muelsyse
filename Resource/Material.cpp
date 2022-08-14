@@ -2,7 +2,7 @@
 
 Material::Material()
 {
-	m_cbufferPreMaterial = std::make_unique<UploadBuffer>();
+	
 }
 
 Material::~Material()
@@ -12,9 +12,6 @@ Material::~Material()
 
 void Material::Activate(ID3D12GraphicsCommandList* cmdList)
 {
-	// set cbuffer for current material
-	m_shader->SetCbuffer("cbPreMaterial", m_cbufferPreMaterial.get());
-
 	// set textures
 	for (auto& p : m_textureMap)
 	{
@@ -43,11 +40,6 @@ void Material::SetTexture(std::string textureName, Texture2D* src)
 		return;
 	}
 	m_textureMap[textureName] = src;
-}
-
-void Material::SetCbuffer(std::string bufferName, UploadBuffer* src)
-{
-	m_shader->SetCbuffer(bufferName, src);
 }
 
 void Material::SetMatrix(std::string bufferName, std::string varName, Matrix src)

@@ -22,7 +22,6 @@ ComPtr<ID3D12PipelineState> m_pipelineState;
 
 Shader* m_shader;
 std::unique_ptr<Mesh> m_mesh;
-std::unique_ptr<UploadBuffer> m_cbuffer;
 std::unique_ptr<Material> m_material;
 
 Transform transform;
@@ -46,11 +45,8 @@ void Engine::OnInit()
     ResourceLoader<Texture2D>* texLoader = ResourceLoader<Texture2D>::GetInstance();
     ResourceLoader<Shader>* shaderLoader = ResourceLoader<Shader>::GetInstance();
 
-    m_cbuffer = std::make_unique<UploadBuffer>();
     m_mesh = std::make_unique<Mesh>();
-
     m_shader = shaderLoader->Find("Shaders/test.hlsl");
-    m_shader->SetCbuffer("cbPreObject", m_cbuffer.get());
 
     m_material = std::make_unique<Material>();
     m_material->SetShader(m_shader);
@@ -96,7 +92,6 @@ void Engine::OnUpdate()
 
 void Engine::OnDestroy()
 {
-    delete m_cbuffer.release();
     delete m_material.release();
 
     ResourceLoader<Texture2D>::GetInstance()->Shutdown();

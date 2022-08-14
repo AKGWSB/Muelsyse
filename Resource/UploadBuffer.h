@@ -8,6 +8,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+#define CBUFFER_BYTE_ALIGN 256
+
 class UploadBuffer
 {
 private:

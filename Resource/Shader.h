@@ -33,7 +33,7 @@ struct CbufferVariableDesc
 struct CbufferBindDesc
 {
 	UploadBuffer* cbuffer = NULL;
-	std::map<std::string, CbufferVariableDesc> variableDescMap;
+	std::unordered_map<std::string, CbufferVariableDesc> variableDescMap;
 	int bindRegister;
 	int bindRegisterSpace;
 	int rootParameterIndex;		// index in root parameter, -1 represent resource not found in shader
@@ -64,7 +64,6 @@ public:
 	void Activate(ID3D12GraphicsCommandList* cmdList);
 
 	void SetTexture(std::string textureName, Texture2D* src);
-	void SetCbuffer(std::string bufferName, UploadBuffer* src);
 	void SetMatrix(std::string bufferName, std::string varName, Matrix src);
 	void SetFloat4(std::string bufferName, std::string varName, Vector4 src);
 };
