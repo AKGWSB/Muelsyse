@@ -11,6 +11,7 @@
 
 #include "../Resource/Mesh.h"
 #include "../Resource/Material.h"
+#include "../Resource/RenderTexture.h"
 
 #include "../Library/DirectXTK/SimpleMath.h"
 
@@ -73,6 +74,7 @@ public:
     void SyncExecute(ID3D12GraphicsCommandList* cmdList);    
 
     void SetRenderTarget();
+    void SetRenderTarget(std::vector<RenderTexture*>& renderTargets);
     void ClearRenderTarget(Vector3 clearColor);
     void SetViewPort(Vector4 rect);
 };

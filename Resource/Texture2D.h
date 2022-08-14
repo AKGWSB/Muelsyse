@@ -10,7 +10,7 @@ using Microsoft::WRL::ComPtr;
 
 class Texture2D
 {
-private:
+protected:
 	Descriptor m_srvDescriptor;
 	ComPtr<ID3D12Resource> m_buffer;
 	DXGI_FORMAT m_format;
@@ -18,6 +18,8 @@ private:
 	void CreateEmpty(int w, int h, DXGI_FORMAT fmt);
 	void LoadFromData(int w, int h, DXGI_FORMAT fmt, void* pData, UINT pixelByteSize);
 	void LoadFromFile(std::string filepath);
+
+	Texture2D(int w, int h, DXGI_FORMAT fmt);
 
 public:
 	std::string name;

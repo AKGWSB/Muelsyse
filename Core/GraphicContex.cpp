@@ -281,6 +281,15 @@ void GraphicContex::SetRenderTarget()
     m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
 }
 
+void GraphicContex::SetRenderTarget(std::vector<RenderTexture*>& renderTargets)
+{
+    std::vector<CD3DX12_CPU_DESCRIPTOR_HANDLE> rtvHandles;
+    for (auto& rt : renderTargets)
+    {
+        // todo
+    }
+}
+
 void GraphicContex::ClearRenderTarget(Vector3 clearColor)
 {
     auto rtvHandle = m_renderTargetViews[m_currentBackBufferIndex].cpuHandle;
