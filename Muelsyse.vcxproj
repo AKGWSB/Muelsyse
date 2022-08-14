@@ -38,6 +38,7 @@
     <ClCompile Include="Rendering\Transform.cpp" />
     <ClCompile Include="Resource\Material.cpp" />
     <ClCompile Include="Resource\Mesh.cpp" />
+    <ClCompile Include="Resource\RenderTexture.cpp" />
     <ClCompile Include="Resource\Shader.cpp" />
     <ClCompile Include="Resource\Texture2D.cpp" />
     <ClCompile Include="Resource\UploadBuffer.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="Rendering\Transform.h" />
     <ClInclude Include="Resource\Material.h" />
     <ClInclude Include="Resource\Mesh.h" />
+    <ClInclude Include="Resource\RenderTexture.h" />
     <ClInclude Include="Resource\ResourceLoader.hpp" />
     <ClInclude Include="Resource\Shader.h" />
     <ClInclude Include="Resource\Texture2D.h" />

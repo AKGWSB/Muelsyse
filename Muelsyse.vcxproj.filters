@@ -111,6 +111,9 @@
     <ClCompile Include="Resource\Material.cpp">
       <Filter>源文件\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="Resource\RenderTexture.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\helper.h">
@@ -198,6 +201,9 @@
       <Filter>头文件\Resource</Filter>
     </ClInclude>
     <ClInclude Include="Resource\ResourceLoader.hpp">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\RenderTexture.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
   </ItemGroup>
