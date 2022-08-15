@@ -118,7 +118,7 @@ void Texture2D::LoadFromFile(std::string filepath)
     {
         // read data from file
         int nChannels , w, h;
-        stbi_set_flip_vertically_on_load(true);
+        //stbi_set_flip_vertically_on_load(true);   
         unsigned char* data = stbi_load(filepath.c_str(), &w, &h, &nChannels, 4);
 
         LoadFromData(w, h, DXGI_FORMAT_R8G8B8A8_UNORM, data, 4);

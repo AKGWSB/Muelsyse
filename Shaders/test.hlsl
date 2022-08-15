@@ -6,6 +6,11 @@ SamplerState DefaultSampler
     AddressV = Wrap;
 };
 
+float4 PointSample(Texture2D tex, float2 uv)
+{
+    return tex.Sample(DefaultSampler, float2(uv.x, 1.0 - uv.y));
+}
+
 Texture2D mainTex0;
 Texture2D mainTex1;
 
@@ -54,7 +59,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     float4 color = float4(0,0,0,1);
 
     //color.rg = input.texcoord;
-    color.rgb += mainTex0.Sample(DefaultSampler, input.texcoord);
+    color.rgb += PointSample(mainTex0, input.texcoord);
     //color.rgb += mainTex0.Sample(DefaultSampler, input.texcoord) * 0.5;
     //color.rgb += mainTex1.Sample(DefaultSampler, input.texcoord) * 0.5;
 

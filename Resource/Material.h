@@ -16,6 +16,7 @@ class Shader;
 class Material
 {
 private:
+	std::unique_ptr<UploadBuffer> m_cbPreMaterial;	// const buffer
 
 public:
 	Shader* m_shader;

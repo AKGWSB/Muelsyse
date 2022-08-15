@@ -12,6 +12,9 @@ Material::~Material()
 
 void Material::Activate(ID3D12GraphicsCommandList* cmdList)
 {
+	// set cb
+	m_shader->SetCbuffer("cbPreMaterial", m_cbPreMaterial.get());
+
 	// set textures
 	for (auto& p : m_textureMap)
 	{
@@ -25,6 +28,7 @@ void Material::SetShader(Shader* shader)
 {
 	m_shader = shader;
 
+	// flush tex's setting
 	m_textureMap.clear();
 	for (auto& p : m_shader->m_textureBindInfoMap)
 	{

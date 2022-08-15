@@ -108,10 +108,10 @@
     <ClCompile Include="Resource\Mesh.cpp">
       <Filter>源文件\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="Resource\Material.cpp">
+    <ClCompile Include="Resource\RenderTexture.cpp">
       <Filter>源文件\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="Resource\RenderTexture.cpp">
+    <ClCompile Include="Resource\Material.cpp">
       <Filter>源文件\Resource</Filter>
     </ClCompile>
   </ItemGroup>
@@ -197,13 +197,13 @@
     <ClInclude Include="Resource\Mesh.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="Resource\Material.h">
-      <Filter>头文件\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="Resource\ResourceLoader.hpp">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
     <ClInclude Include="Resource\RenderTexture.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\Material.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
   </ItemGroup>

@@ -161,5 +161,5 @@ void Engine::OnRender()
 void Engine::Tick(double delta_time)
 {
     transform.rotation.z += 45.0f * delta_time;
-    transformInv.rotation.z += -45.0f * delta_time;
+    transformInv.rotation.z += 45.0f * delta_time;
 }
