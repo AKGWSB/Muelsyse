@@ -43,6 +43,12 @@
     <Filter Include="源文件\Rendering">
       <UniqueIdentifier>{e12a527e-ff19-4693-a5b4-50627995a7d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Gameplay">
+      <UniqueIdentifier>{81efc1cc-d528-461c-8805-1c1a5bf44c86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Gameplay">
+      <UniqueIdentifier>{57d72587-315e-483a-a8de-93e1f2bd4037}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -113,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="Resource\Material.cpp">
       <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameplay\StaticMeshComponent.cpp">
+      <Filter>源文件\Gameplay</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +214,12 @@
     </ClInclude>
     <ClInclude Include="Resource\Material.h">
       <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\StaticMeshComponent.h">
+      <Filter>头文件\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\MetaComponent.h">
+      <Filter>头文件\Gameplay</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

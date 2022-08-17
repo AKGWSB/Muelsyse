@@ -24,9 +24,15 @@ private:
 	ComPtr<ID3D12Resource> m_vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 
+	std::vector<Vertex> m_vertices;
+
+	void LoadObj(std::string filepath);
 	void LoadFromData(std::vector<Vertex>& vertices);
 
 public:
+	std::string name;
+
+	Mesh(std::string filepath);
 	Mesh();
 	~Mesh();
 
