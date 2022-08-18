@@ -24,6 +24,7 @@
     <ClCompile Include="Core\GraphicContex.cpp" />
     <ClCompile Include="Core\Timer.cpp" />
     <ClCompile Include="Core\Win32App.cpp" />
+    <ClCompile Include="Gameplay\Actor.cpp" />
     <ClCompile Include="Gameplay\StaticMeshComponent.cpp" />
     <ClCompile Include="Library\imgui\imgui.cpp" />
     <ClCompile Include="Library\imgui\ImGuizmo.cpp" />
@@ -52,7 +53,9 @@
     <ClInclude Include="Core\helper.h" />
     <ClInclude Include="Core\Timer.h" />
     <ClInclude Include="Core\Win32App.h" />
+    <ClInclude Include="Gameplay\Actor.h" />
     <ClInclude Include="Gameplay\MetaComponent.h" />
+    <ClInclude Include="Gameplay\Scene.h" />
     <ClInclude Include="Gameplay\StaticMeshComponent.h" />
     <ClInclude Include="Library\DirectXTK\SimpleMath.h" />
     <ClInclude Include="Library\imgui\imconfig.h" />

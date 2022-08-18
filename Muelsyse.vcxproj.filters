@@ -123,6 +123,9 @@
     <ClCompile Include="Gameplay\StaticMeshComponent.cpp">
       <Filter>源文件\Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="Gameplay\Actor.cpp">
+      <Filter>源文件\Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\helper.h">
@@ -219,6 +222,12 @@
       <Filter>头文件\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="Gameplay\MetaComponent.h">
+      <Filter>头文件\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Scene.h">
+      <Filter>头文件\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Gameplay\Actor.h">
       <Filter>头文件\Gameplay</Filter>
     </ClInclude>
   </ItemGroup>
