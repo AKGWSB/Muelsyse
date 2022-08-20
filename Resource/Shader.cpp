@@ -223,7 +223,7 @@ void Shader::Activate(ID3D12GraphicsCommandList* cmdList)
         auto& info = p.second;
         if (info.texture == NULL) continue;
 
-        cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndex, info.texture->GetGpuHandle());
+        cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndex, info.texture->GetSrvGpuHandle());
     }
 }
 

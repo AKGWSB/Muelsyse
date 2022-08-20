@@ -7,6 +7,8 @@ class Actor;
 
 class MetaComponent
 {
+	friend class Actor;
+
 private:
 	Actor* m_hostActor;
 

@@ -1,4 +1,5 @@
 #include "Texture2D.h"
+
 #include "../Core/GraphicContex.h"
 #include "../Core/helper.h"
 
@@ -8,9 +9,9 @@
 
 #include "../Library/stb_image.h"
 
-Texture2D::Texture2D(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS flag)
+Texture2D::Texture2D(int w, int h, DXGI_FORMAT fmt)
 {
-    CreateEmpty(w, h, fmt, flag);
+    CreateEmpty(w, h, fmt);
 }
 
 Texture2D::Texture2D(std::string filepath)
@@ -25,7 +26,7 @@ Texture2D::~Texture2D()
 	descManager->FreeDescriptor(m_srvDescriptor);
 }
 
-void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS flag)
+void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt)
 {
     DescriptorManager* descManager = DescriptorManager::GetInstance();
     GraphicContex* contex = GraphicContex::GetInstance();
@@ -34,10 +35,6 @@ void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS 
     width = w;
     height = h;
     m_format = fmt;
-    m_flag = flag;
-
-    // alloc d
-	m_srvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Describe and create a Texture2D.
     D3D12_RESOURCE_DESC textureDesc = {};
@@ -45,7 +42,7 @@ void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS 
     textureDesc.Format = m_format;
     textureDesc.Width = width;
     textureDesc.Height = height;
-    textureDesc.Flags = flag;
+    textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     textureDesc.DepthOrArraySize = 1;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;
@@ -59,6 +56,16 @@ void Texture2D::CreateEmpty(int w, int h, DXGI_FORMAT fmt, D3D12_RESOURCE_FLAGS 
         D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr,
         IID_PPV_ARGS(&m_buffer)));
+
+    // Describe and create a SRV for the texture.
+    m_srvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = fmt;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+    device->CreateShaderResourceView(m_buffer.Get(), &srvDesc, m_srvDescriptor.cpuHandle);
 }
 
 void Texture2D::LoadFromData(int w, int h, DXGI_FORMAT fmt, void* pData, UINT pixelByteSize)
@@ -97,14 +104,6 @@ void Texture2D::LoadFromData(int w, int h, DXGI_FORMAT fmt, void* pData, UINT pi
     auto trans = CD3DX12_RESOURCE_BARRIER::Transition(m_buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     cmdList->ResourceBarrier(1, &trans);
 
-    // Describe and create a SRV for the texture.
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Format = fmt;
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
-    device->CreateShaderResourceView(m_buffer.Get(), &srvDesc, m_srvDescriptor.cpuHandle);
-
     // upload to gpu
     contex->SyncExecute(cmdList);
 }
@@ -130,7 +129,7 @@ void Texture2D::LoadFromFile(std::string filepath)
     }
 }
 
-CD3DX12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGpuHandle()
+CD3DX12_GPU_DESCRIPTOR_HANDLE Texture2D::GetSrvGpuHandle()
 {
     return m_srvDescriptor.gpuHandle;
 }

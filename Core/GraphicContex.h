@@ -8,6 +8,7 @@
 
 #include "Engine.h"
 #include "DescriptorManager.h"
+#include "CommandListHandle.h"
 
 #include "../Resource/Mesh.h"
 #include "../Resource/Material.h"
@@ -16,14 +17,14 @@
 #include "../Library/DirectXTK/SimpleMath.h"
 
 class Engine;
+class CommandListHandle;
+class RenderTexture;
 
 using namespace DirectX::SimpleMath;
 using Microsoft::WRL::ComPtr;
 
 class GraphicContex
 {
-    friend class Engine;
-
 private:
     int screenWidth;
     int screenHeight;
@@ -46,8 +47,7 @@ private:
     // frame resource
     UINT m_currentBackBufferIndex;
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-    ComPtr<ID3D12Resource> m_renderTargets[m_frameCount];
-    Descriptor m_renderTargetViews[m_frameCount];
+    std::unique_ptr<RenderTexture> m_renderTargets[m_frameCount];
 
     void Init();
 
@@ -60,8 +60,12 @@ private:
     // called by Engine as friend class
     void Begin();   // before populate
     void End();     // after populate, swap and present current frame
+    void Shutdown();
 
 public:
+    friend class Engine;
+    friend class CommandListHandle;
+
     ~GraphicContex() { };
 
     // single ton

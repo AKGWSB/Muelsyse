@@ -126,6 +126,12 @@
     <ClCompile Include="Gameplay\Actor.cpp">
       <Filter>源文件\Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="Resource\DepthTexture.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\CommandListHandle.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\helper.h">
@@ -229,6 +235,12 @@
     </ClInclude>
     <ClInclude Include="Gameplay\Actor.h">
       <Filter>头文件\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\DepthTexture.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\CommandListHandle.h">
+      <Filter>头文件\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

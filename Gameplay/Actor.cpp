@@ -30,6 +30,7 @@ void Actor::RegisterComponent(std::string compName, MetaComponent* comp)
 		throw std::exception(dbg.c_str());
 	}
 
+	comp->m_hostActor = this;
 	m_components[compName] = comp;
 }
 
@@ -40,19 +41,32 @@ void Actor::RemoveComponent(std::string compName)
 
 void Actor::OnStart()
 {
-
+	for (auto& p : m_components)
+	{
+		p.second->OnStart();
+	}
 }
 
 void Actor::OnTick(double delta_time)
 {
-
+	for (auto& p : m_components)
+	{
+		p.second->OnTick(delta_time);
+	}
 }
 
-void Actor::OnRender() {
-
+void Actor::OnRender(ID3D12GraphicsCommandList* cmdList)
+{
+	for (auto& p : m_components)
+	{
+		p.second->OnRender(cmdList);
+	}
 }
 
 void Actor::OnDestroy()
 {
-
+	for (auto& p : m_components)
+	{
+		p.second->OnDestroy();
+	}
 }

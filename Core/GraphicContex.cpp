@@ -79,19 +79,17 @@ void GraphicContex::Init()
 
 
     // Create a RTV for each frame.
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < m_frameCount; i++)
     {
-        // create buffer
-        ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
-        m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
+        // create a simple rt
+        m_renderTargets[i] = std::make_unique<RenderTexture>(screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+       
+        // re create buffer from screen swap chain
+        ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i]->m_buffer)));
 
-        // record rtv handle
-        Descriptor rtvDesc;
-        rtvDesc.cpuHandle = rtvHandle;
-        m_renderTargetViews[i] = rtvDesc;
-
-        rtvHandle.Offset(1, m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
+        // re create rtv 
+        auto rtvHandle = m_renderTargets[i]->m_rtvDescriptor.cpuHandle;
+        m_device->CreateRenderTargetView(m_renderTargets[i]->m_buffer.Get(), nullptr, rtvHandle);
     }
 
 
@@ -218,8 +216,8 @@ void GraphicContex::Begin()
 void GraphicContex::End()
 {
     // Indicate that the back buffer will now be used to present.
-    auto backBuffer = m_renderTargets[m_currentBackBufferIndex].Get();
-    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
+    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(rtBackBuffer->m_buffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     m_commandList->ResourceBarrier(1, &trans);
 
     // Execute the command list.
@@ -237,6 +235,14 @@ void GraphicContex::End()
     // clear
     ThrowIfFailed(m_commandAllocator->Reset());
     ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), NULL));
+}
+
+void GraphicContex::Shutdown()
+{
+    for (auto& rt : m_renderTargets)
+    {
+        delete rt.release();
+    }
 }
 
 GraphicContex* GraphicContex::GetInstance()
@@ -273,36 +279,20 @@ void GraphicContex::SyncExecute(ID3D12GraphicsCommandList* cmdList)
 
 void GraphicContex::SetRenderTarget(ID3D12GraphicsCommandList* cmdList)
 {
-    auto backBuffer = m_renderTargets[m_currentBackBufferIndex].Get();
-    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(backBuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
+    auto rtvHandle = rtBackBuffer->GetRtvCpuHandle();
+
+    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(rtBackBuffer->m_buffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     cmdList->ResourceBarrier(1, &trans);
 
-    auto rtvHandle = m_renderTargetViews[m_currentBackBufferIndex].cpuHandle;
     cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
-}
-
-void GraphicContex::SetRenderTarget(ID3D12GraphicsCommandList* cmdList, std::vector<RenderTexture*> renderTargets)
-{
-    std::vector<CD3DX12_CPU_DESCRIPTOR_HANDLE> rtvHandles;
-    for (auto& rt : renderTargets)
-    {
-        rt->ChangeToRenderTargetState(cmdList);
-        rtvHandles.push_back(rt->GetRtvCpuHandle());
-    }
-
-    cmdList->OMSetRenderTargets(rtvHandles.size(), rtvHandles.data(), FALSE, NULL);
 }
 
 void GraphicContex::ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, Vector3 clearColor)
 {
-    auto rtvHandle = m_renderTargetViews[m_currentBackBufferIndex].cpuHandle;
-    float _clearColor[4] = { clearColor.x, clearColor.y, clearColor.z, 1.0f };
-    cmdList->ClearRenderTargetView(rtvHandle, _clearColor, 0, nullptr);
-}
+    auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
+    auto rtvHandle = rtBackBuffer->GetRtvCpuHandle();
 
-void GraphicContex::ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, RenderTexture* renderTarget, Vector3 clearColor)
-{
-    auto rtvHandle = renderTarget->GetRtvCpuHandle();
     float _clearColor[4] = { clearColor.x, clearColor.y, clearColor.z, 1.0f };
     cmdList->ClearRenderTargetView(rtvHandle, _clearColor, 0, nullptr);
 }

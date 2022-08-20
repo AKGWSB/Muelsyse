@@ -1,18 +1,44 @@
 #include "RenderTexture.h"
-#include "../Core/GraphicContex.h"
 
-RenderTexture::RenderTexture(int w, int h, DXGI_FORMAT fmt) :
-	Texture2D(w, h, fmt, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+#include "../Core/GraphicContex.h"
+#include "../Core/helper.h"
+
+RenderTexture::RenderTexture(int w, int h, DXGI_FORMAT fmt)
 {
 	GraphicContex* contex = GraphicContex::GetInstance();
 	ID3D12Device* device = contex->GetDevice();
-	ID3D12GraphicsCommandList* cmdList = contex->GetCommandList();
 	DescriptorManager* descManager = DescriptorManager::GetInstance();
 
-	// alloc rtv desc
-	m_rtvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	width = w;
+	height = h;
+	m_format = fmt;
 
-	// create rtv
+	// Describe and create a Texture2D.
+	D3D12_RESOURCE_DESC textureDesc = {};
+	textureDesc.MipLevels = 1;
+	textureDesc.Format = m_format;
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	textureDesc.DepthOrArraySize = 1;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+	auto hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	ThrowIfFailed(device->CreateCommittedResource(
+		&hp,
+		D3D12_HEAP_FLAG_NONE,
+		&textureDesc,
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		nullptr,
+		IID_PPV_ARGS(&m_buffer)));
+
+	// alloc rtv. srv desc
+	m_rtvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_srvDescriptor = descManager->AllocDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	//  Describe and create a rtv for the texture.
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = fmt;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -27,18 +53,14 @@ RenderTexture::RenderTexture(int w, int h, DXGI_FORMAT fmt) :
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	device->CreateShaderResourceView(m_buffer.Get(), &srvDesc, m_srvDescriptor.cpuHandle);
-
-	// ba
-	auto trans = CD3DX12_RESOURCE_BARRIER::Transition(m_buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	cmdList->ResourceBarrier(1, &trans);
-
-	// debug
-	//m_buffer->SetName(L"RT_DEBUG");
 }
 
 RenderTexture::~RenderTexture()
 {
-	DescriptorManager::GetInstance()->FreeDescriptor(m_rtvDescriptor);
+	DescriptorManager* descManager = DescriptorManager::GetInstance();
+
+	descManager->FreeDescriptor(m_rtvDescriptor);
+	descManager->FreeDescriptor(m_srvDescriptor);
 }
 
 CD3DX12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetRtvCpuHandle()

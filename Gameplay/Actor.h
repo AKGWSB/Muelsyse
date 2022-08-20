@@ -25,7 +25,7 @@ public:
 
 	void OnStart();
 	void OnTick(double delta_time);
-	void OnRender();
+	void OnRender(ID3D12GraphicsCommandList* cmdList);
 	void OnDestroy();
 };
 

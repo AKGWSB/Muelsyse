@@ -1,13 +1,29 @@
 #pragma once
 
-#include "Texture2D.h"
+#include <d3d12.h>
+#include <wrl.h>
+#include <string>
 
-class RenderTexture : public Texture2D
+#include "../Core/DescriptorManager.h"
+#include "../Core/GraphicContex.h"
+
+using Microsoft::WRL::ComPtr;
+
+class RenderTexture
 {
 private:
 	Descriptor m_rtvDescriptor;
+	Descriptor m_srvDescriptor;
+	ComPtr<ID3D12Resource> m_buffer;
+	DXGI_FORMAT m_format;
 
 public:
+	friend class GraphicContex;
+
+	std::string name;
+	int width;
+	int height;
+
 	RenderTexture(int w, int h, DXGI_FORMAT fmt);
 	~RenderTexture();
 

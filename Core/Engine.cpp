@@ -10,12 +10,14 @@
 #include "../Resource/Shader.h"
 #include "../Resource/Texture2D.h"
 #include "../Resource/RenderTexture.h"
+#include "../Resource/DepthTexture.h"
 #include "../Resource/Material.h"
 #include "../Resource/ResourceLoader.hpp"
 
 #include "../Rendering/Transform.h"
 
 #include "../Gameplay/StaticMeshComponent.h"
+#include "../Gameplay/Actor.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -27,10 +29,14 @@ std::unique_ptr<RenderTexture> m_rt0;
 
 Shader* m_shader;
 std::unique_ptr<Material> m_cubeMaterial;
-std::unique_ptr<StaticMeshComponent> m_cubeMesh;
+std::unique_ptr<StaticMeshComponent> m_cubeMeshComp;
 
 std::unique_ptr<Material> m_sphereMaterial;
-std::unique_ptr<StaticMeshComponent> m_sphereMesh;
+std::unique_ptr<StaticMeshComponent> m_sphereMeshComp;
+
+std::unique_ptr<Actor> m_actor;
+
+std::unique_ptr<DepthTexture> m_depthTex;
 
 // ---------------------------------------------------------------------- //
 
@@ -52,7 +58,8 @@ void Engine::OnInit()
     ResourceLoader<Shader>* shaderLoader = ResourceLoader<Shader>::GetInstance();
     ResourceLoader<Mesh>* meshLoader = ResourceLoader<Mesh>::GetInstance();
 
-    m_rt0 = std::make_unique<RenderTexture>(1600, 900, DXGI_FORMAT_R8G8B8A8_UNORM);
+    m_rt0 = std::make_unique<RenderTexture>(Win32App::m_width, Win32App::m_height, DXGI_FORMAT_R8G8B8A8_UNORM);
+    m_depthTex = std::make_unique<DepthTexture>(Win32App::m_width, Win32App::m_height);
 
     m_shader = shaderLoader->Find("Shaders/test.hlsl");
 
@@ -62,9 +69,11 @@ void Engine::OnInit()
         m_cubeMaterial->SetShader(m_shader);
         m_cubeMaterial->SetTexture("mainTex0", texLoader->Find("Asset/test2.jpg"));
 
-        m_cubeMesh = std::make_unique<StaticMeshComponent>();
-        m_cubeMesh->m_material = m_cubeMaterial.get();
-        m_cubeMesh->m_mesh = meshLoader->Find("Asset/Geometry/cube.obj");
+        m_cubeMeshComp = std::make_unique<StaticMeshComponent>();
+        m_cubeMeshComp->m_material = m_cubeMaterial.get();
+        m_cubeMeshComp->m_mesh = meshLoader->Find("Asset/Geometry/cube.obj");
+        m_cubeMeshComp->m_transform.translate = Vector3(-0.35, 0, 0.0);
+        m_cubeMeshComp->m_transform.scale = Vector3(0.5, 0.5, 0.5);
     }
        
     // sphere
@@ -73,9 +82,19 @@ void Engine::OnInit()
         m_sphereMaterial->SetShader(m_shader);
         m_sphereMaterial->SetTexture("mainTex0", texLoader->Find("Asset/test3.jpg"));
 
-        m_sphereMesh = std::make_unique<StaticMeshComponent>();
-        m_sphereMesh->m_material = m_sphereMaterial.get();
-        m_sphereMesh->m_mesh = meshLoader->Find("Asset/Geometry/sphere.obj");
+        m_sphereMeshComp = std::make_unique<StaticMeshComponent>();
+        m_sphereMeshComp->m_material = m_sphereMaterial.get();
+        m_sphereMeshComp->m_mesh = meshLoader->Find("Asset/Geometry/sphere.obj");
+        m_sphereMeshComp->m_transform.translate = Vector3(0.35, 0, 0.0);
+        m_sphereMeshComp->m_transform.scale = Vector3(0.5, 0.5, 0.5);
+    }
+
+    // to an actor
+    {
+        m_actor = std::make_unique<Actor>();
+        m_actor->transform.translate = Vector3(0, 0, 0.5);
+        m_actor->RegisterComponent("CbueMesh", m_cubeMeshComp.get());
+        m_actor->RegisterComponent("SphereMesh", m_sphereMeshComp.get());
     }
 
     // Define the vertex input layout.
@@ -118,13 +137,16 @@ void Engine::OnUpdate()
 void Engine::OnDestroy()
 {
     delete m_cubeMaterial.release();
-    delete m_cubeMesh.release();
-    delete m_sphereMesh.release();
+    delete m_cubeMeshComp.release();
+    delete m_sphereMeshComp.release();
     delete m_rt0.release();
+    delete m_depthTex.release();
 
     ResourceLoader<Texture2D>::GetInstance()->Shutdown();
     ResourceLoader<Shader>::GetInstance()->Shutdown();
     ResourceLoader<Mesh>::GetInstance()->Shutdown();
+
+    GraphicContex::GetInstance()->Shutdown();
 }
 
 // ---------------------------------------------------------------------- //
@@ -150,7 +172,7 @@ void Engine::OnRender()
             m_cubeMaterial->SetCbuffer("cbPreObject", m_cb0.get());
             m_cubeMaterial->SetMatrix("cbPreObject", "modelMatrix", transform.GetTransformMatrix());
             m_cubeMaterial->Activate(cmdList);
-            m_cubeMesh->Draw(cmdList);
+            m_cubeMeshComp->Draw(cmdList);
 
             m_rt0->ChangeToShaderRsourceState(cmdList);
         }*/
@@ -161,8 +183,7 @@ void Engine::OnRender()
             contex->ClearRenderTarget(cmdList, Vector3(0.5, 0.5, 0.5));
             contex->SetViewPort(cmdList, Vector4(0, 0, Win32App::m_width, Win32App::m_height));
 
-            m_cubeMesh->OnRender(cmdList);
-            m_sphereMesh->OnRender(cmdList);
+            m_actor->OnRender(cmdList);
         }
     }
     
@@ -173,11 +194,5 @@ void Engine::OnRender()
 
 void Engine::Tick(double delta_time)
 {
-    m_cubeMesh->m_transform.rotation.y += 90.0f * delta_time;
-    m_cubeMesh->m_transform.scale = Vector3(0.5, 0.5, 0.5);
-    m_cubeMesh->m_transform.translate = Vector3(-0.35, 0, 0.5);
-
-    m_sphereMesh->m_transform.rotation.y -= 90.0f * delta_time;
-    m_sphereMesh->m_transform.scale = Vector3(0.5, 0.5, 0.5);
-    m_sphereMesh->m_transform.translate = Vector3(0.35, 0, 0.5);
+    m_actor->transform.rotation.y += 90.0f * delta_time;
 }

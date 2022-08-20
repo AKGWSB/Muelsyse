@@ -48,7 +48,7 @@ Descriptor DescriptorHeap::Alloc()
     desc.index = index;
     desc.cpuHandle = GetCpuHandle(index);
 
-    if (!(m_type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV))
+    if (!(m_type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV) && !(m_type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV))
     {
         desc.gpuHandle = GetGpuHandle(index);
     }
