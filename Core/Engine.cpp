@@ -16,6 +16,7 @@
 #include "../Resource/ResourceLoader.hpp"
 
 #include "../Rendering/Transform.h"
+#include "../Rendering/PsoCache.h"
 
 #include "../Gameplay/StaticMeshComponent.h"
 #include "../Gameplay/Actor.h"
@@ -23,8 +24,6 @@
 using Microsoft::WRL::ComPtr;
 
 // ---------------------------------------------------------------------- //
-
-ComPtr<ID3D12PipelineState> m_pipelineState;
 
 std::unique_ptr<RenderTexture> m_rt0;
 
@@ -90,43 +89,13 @@ void Engine::OnInit()
         m_sphereMeshComp->m_transform.scale = Vector3(0.25, 0.25, 0.25);
     }
 
-    // to an actor
+    // pack to an actor
     {
         m_actor = std::make_unique<Actor>();
         m_actor->transform.translate = Vector3(0, 0, 0.5);
         m_actor->RegisterComponent("CbueMesh", m_cubeMeshComp.get());
         m_actor->RegisterComponent("SphereMesh", m_sphereMeshComp.get());
     }
-
-    // Define the vertex input layout.
-    D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-    };
-
-    // Describe and create the graphics pipeline state object (PSO).
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.pRootSignature = m_shader->m_rootSignature.Get();
-    psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_shader->m_vertexShaderByteCode.Get());
-    psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_shader->m_pixelShaderByteCode.Get());
-
-    psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc.SampleMask = UINT_MAX;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    psoDesc.SampleDesc.Count = 1;
-
-    psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // a default depth stencil state
-    psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-    auto device = GraphicContex::GetInstance()->GetDevice();
-    ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
 void Engine::OnUpdate()
@@ -161,7 +130,13 @@ void Engine::OnRender()
     contex->Begin();
 
     {
-        cmdList->SetPipelineState(m_pipelineState.Get());
+        
+        PsoDescriptor psoDesc;
+        psoDesc.shaderRef = "Shaders/test.hlsl";
+
+        auto psoCache = PsoCache::GetInstance();
+        ID3D12PipelineState* m_pipelineState = psoCache->Find(psoDesc);
+        cmdList->SetPipelineState(m_pipelineState);
 
         CommandListHandle* cmd = new CommandListHandle(cmdList);
 

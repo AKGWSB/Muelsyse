@@ -285,27 +285,3 @@ RenderTexture* GraphicContex::GetCurrentBackBuffer()
     return m_renderTargets[m_currentBackBufferIndex].get();
 }
 
-void GraphicContex::SetRenderTarget(ID3D12GraphicsCommandList* cmdList)
-{
-    auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
-    auto rtvHandle = rtBackBuffer->GetRtvCpuHandle();
-    
-    cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
-}
-
-void GraphicContex::ClearRenderTarget(ID3D12GraphicsCommandList* cmdList, Vector3 clearColor)
-{
-    auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
-    auto rtvHandle = rtBackBuffer->GetRtvCpuHandle();
-
-    float _clearColor[4] = { clearColor.x, clearColor.y, clearColor.z, 1.0f };
-    cmdList->ClearRenderTargetView(rtvHandle, _clearColor, 0, nullptr);
-}
-
-void GraphicContex::SetViewPort(ID3D12GraphicsCommandList* cmdList, Vector4 rect)
-{
-    CD3DX12_VIEWPORT m_viewport(rect.x, rect.y, rect.z, rect.w);
-    CD3DX12_RECT m_scissorRect(rect.x, rect.y, rect.z, rect.w);
-    cmdList->RSSetViewports(1, &m_viewport);
-    cmdList->RSSetScissorRects(1, &m_scissorRect);
-}

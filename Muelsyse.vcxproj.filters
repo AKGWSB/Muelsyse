@@ -132,6 +132,9 @@
     <ClCompile Include="Core\CommandListHandle.cpp">
       <Filter>源文件\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\PsoCache.cpp">
+      <Filter>源文件\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\helper.h">
@@ -241,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="Core\CommandListHandle.h">
       <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\PsoCache.h">
+      <Filter>头文件\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
