@@ -8,7 +8,6 @@
 
 #include "Engine.h"
 #include "DescriptorManager.h"
-#include "CommandListHandle.h"
 
 #include "../Resource/Mesh.h"
 #include "../Resource/Material.h"
@@ -17,7 +16,6 @@
 #include "../Library/DirectXTK/SimpleMath.h"
 
 class Engine;
-class CommandListHandle;
 class RenderTexture;
 
 using namespace DirectX::SimpleMath;
@@ -76,6 +74,9 @@ public:
 
     // exe and wait gpu
     void SyncExecute(ID3D12GraphicsCommandList* cmdList);    
+
+    // return current frams's back RT
+    RenderTexture* GetCurrentBackBuffer();
 
     // for screen buffer
     void SetRenderTarget(ID3D12GraphicsCommandList* cmdList);

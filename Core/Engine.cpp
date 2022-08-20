@@ -5,6 +5,7 @@
 
 #include "Engine.h"
 #include "GraphicContex.h"
+#include "CommandListHandle.h"
 
 #include "../Resource/Mesh.h"
 #include "../Resource/Shader.h"
@@ -73,7 +74,7 @@ void Engine::OnInit()
         m_cubeMeshComp->m_material = m_cubeMaterial.get();
         m_cubeMeshComp->m_mesh = meshLoader->Find("Asset/Geometry/cube.obj");
         m_cubeMeshComp->m_transform.translate = Vector3(-0.35, 0, 0.0);
-        m_cubeMeshComp->m_transform.scale = Vector3(0.5, 0.5, 0.5);
+        m_cubeMeshComp->m_transform.scale = Vector3(0.25, 0.25, 0.25);
     }
        
     // sphere
@@ -86,7 +87,7 @@ void Engine::OnInit()
         m_sphereMeshComp->m_material = m_sphereMaterial.get();
         m_sphereMeshComp->m_mesh = meshLoader->Find("Asset/Geometry/sphere.obj");
         m_sphereMeshComp->m_transform.translate = Vector3(0.35, 0, 0.0);
-        m_sphereMeshComp->m_transform.scale = Vector3(0.5, 0.5, 0.5);
+        m_sphereMeshComp->m_transform.scale = Vector3(0.25, 0.25, 0.25);
     }
 
     // to an actor
@@ -115,13 +116,14 @@ void Engine::OnInit()
     psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc.DepthStencilState.DepthEnable = FALSE;
-    psoDesc.DepthStencilState.StencilEnable = FALSE;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc.SampleDesc.Count = 1;
+
+    psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // a default depth stencil state
+    psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
     auto device = GraphicContex::GetInstance()->GetDevice();
     ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
@@ -161,30 +163,21 @@ void Engine::OnRender()
     {
         cmdList->SetPipelineState(m_pipelineState.Get());
 
+        CommandListHandle* cmd = new CommandListHandle(cmdList);
+
         // first pass
-        /*
         {
-            contex->SetRenderTarget(cmdList, { m_rt0.get() });
-            contex->ClearRenderTarget(cmdList, m_rt0.get(), Vector3(0.0, 0.0, 0.0));
-            contex->SetViewPort(cmdList, Vector4(0, 0, Win32App::m_width, Win32App::m_height));
+            RenderTexture* screen = contex->GetCurrentBackBuffer();
+            
+            cmd->SetRenderTarget({ screen }, m_depthTex.get());
+            cmd->ClearRenderTarget({ screen }, Vector3(0.5, 0.5, 0.5));
+            cmd->ClearDepthBuffer(m_depthTex.get());
+            cmd->SetViewPort(Vector4(0, 0, Win32App::m_width, Win32App::m_height));
 
-            m_cubeMaterial->SetTexture("mainTex0", ResourceLoader<Texture2D>::GetInstance()->Find("Asset/test2.jpg"));
-            m_cubeMaterial->SetCbuffer("cbPreObject", m_cb0.get());
-            m_cubeMaterial->SetMatrix("cbPreObject", "modelMatrix", transform.GetTransformMatrix());
-            m_cubeMaterial->Activate(cmdList);
-            m_cubeMeshComp->Draw(cmdList);
-
-            m_rt0->ChangeToShaderRsourceState(cmdList);
-        }*/
-        
-        // second pass
-        {
-            contex->SetRenderTarget(cmdList);   // set to screen
-            contex->ClearRenderTarget(cmdList, Vector3(0.5, 0.5, 0.5));
-            contex->SetViewPort(cmdList, Vector4(0, 0, Win32App::m_width, Win32App::m_height));
-
-            m_actor->OnRender(cmdList);
+            cmd->RenderActor(m_actor.get());
         }
+
+        delete cmd;
     }
     
     contex->End();

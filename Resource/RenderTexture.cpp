@@ -68,6 +68,7 @@ CD3DX12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetRtvCpuHandle()
 	return m_rtvDescriptor.cpuHandle;
 }
 
+/*
 void RenderTexture::ChangeToRenderTargetState(ID3D12GraphicsCommandList* cmdList)
 {
 	auto br = CD3DX12_RESOURCE_BARRIER::Transition(m_buffer.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -77,5 +78,12 @@ void RenderTexture::ChangeToRenderTargetState(ID3D12GraphicsCommandList* cmdList
 void RenderTexture::ChangeToShaderRsourceState(ID3D12GraphicsCommandList* cmdList)
 {
 	auto br = CD3DX12_RESOURCE_BARRIER::Transition(m_buffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	cmdList->ResourceBarrier(1, &br);
+}
+*/
+
+void RenderTexture::ChangeState(ID3D12GraphicsCommandList* cmdList, D3D12_RESOURCE_STATES curStat, D3D12_RESOURCE_STATES dstStat)
+{
+	auto br = CD3DX12_RESOURCE_BARRIER::Transition(m_buffer.Get(), curStat, dstStat);
 	cmdList->ResourceBarrier(1, &br);
 }

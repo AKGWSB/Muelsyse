@@ -1,6 +1,10 @@
 #pragma once
 
-#include "Texture2D.h"
+#include <d3d12.h>
+#include <wrl.h>
+#include <string>
+
+#include "../Core/DescriptorManager.h"
 
 class DepthTexture
 {

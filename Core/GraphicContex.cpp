@@ -211,14 +211,17 @@ void GraphicContex::Begin()
 
     ID3D12DescriptorHeap* ppHeaps[] = { g_srvHeap, g_samplerHeap };
     m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+    // Indicate that the back buffer will now be used to render target.
+    auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
+    rtBackBuffer->ChangeState(m_commandList.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 }
 
 void GraphicContex::End()
 {
     // Indicate that the back buffer will now be used to present.
     auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
-    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(rtBackBuffer->m_buffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    m_commandList->ResourceBarrier(1, &trans);
+    rtBackBuffer->ChangeState(m_commandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
     // Execute the command list.
     ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
@@ -277,14 +280,16 @@ void GraphicContex::SyncExecute(ID3D12GraphicsCommandList* cmdList)
     ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), NULL));
 }
 
+RenderTexture* GraphicContex::GetCurrentBackBuffer()
+{
+    return m_renderTargets[m_currentBackBufferIndex].get();
+}
+
 void GraphicContex::SetRenderTarget(ID3D12GraphicsCommandList* cmdList)
 {
     auto rtBackBuffer = m_renderTargets[m_currentBackBufferIndex].get();
     auto rtvHandle = rtBackBuffer->GetRtvCpuHandle();
-
-    auto trans = CD3DX12_RESOURCE_BARRIER::Transition(rtBackBuffer->m_buffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    cmdList->ResourceBarrier(1, &trans);
-
+    
     cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
 }
 

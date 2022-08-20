@@ -9,6 +9,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+class GraphicContex;
+
 class RenderTexture
 {
 private:
@@ -28,6 +30,15 @@ public:
 	~RenderTexture();
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE GetRtvCpuHandle();
+
+	/*
+	// PIXEL_SHADER_RESOURCE --> RENDER_TARGET
 	void ChangeToRenderTargetState(ID3D12GraphicsCommandList* cmdList);
+
+	// RENDER_TARGET --> PIXEL_SHADER_RESOURCE
 	void ChangeToShaderRsourceState(ID3D12GraphicsCommandList* cmdList);
+	*/
+
+	// Resource Barrier, change from "curStat" to "dstStat"
+	void ChangeState(ID3D12GraphicsCommandList* cmdList, D3D12_RESOURCE_STATES curStat, D3D12_RESOURCE_STATES dstStat);
 };
