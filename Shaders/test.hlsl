@@ -23,6 +23,7 @@ cbuffer cbPrePass
 {
     float4x4 viewMatrix;
     float4x4 projectionMatrix;
+    float4 vec4Debug;
 };
 
 struct PSInput
@@ -43,8 +44,8 @@ PSInput VSMain(
 
     float4 p = position;
     p = mul(p, modelMatrix);
-    //p = mul(p, viewMatrix);
-    //p = mul(p, projectionMatrix);
+    p = mul(p, viewMatrix);
+    p = mul(p, projectionMatrix);
 
     result.position = p;
     result.texcoord = texcoord;
@@ -63,5 +64,5 @@ float4 PSMain(PSInput input) : SV_TARGET
     //color.rgb += mainTex0.Sample(DefaultSampler, input.texcoord) * 0.5;
     //color.rgb += mainTex1.Sample(DefaultSampler, input.texcoord) * 0.5;
 
-    return color;
+    return color + 0.05 * vec4Debug;
 }

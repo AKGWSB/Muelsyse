@@ -21,7 +21,7 @@ struct TextureBindDesc
 	Texture2D* texture = NULL;
 	int bindRegister;
 	int bindRegisterSpace;
-	int rootParameterIndex;		// index in root parameter, -1 represent resource not found in shader
+	int rootParameterIndex = -1;		// index in root parameter, -1 represent resource not found in shader
 };
 
 struct CbufferVariableDesc
@@ -36,7 +36,13 @@ struct CbufferBindDesc
 	std::unordered_map<std::string, CbufferVariableDesc> variableDescMap;
 	int bindRegister;
 	int bindRegisterSpace;
-	int rootParameterIndex;		// index in root parameter, -1 represent resource not found in shader
+
+	// index in root parameter, a resource maybe used in both PS and VS
+	// so it will has 2 root param with both "D3D12_SHADER_VISIBILITY_VERTEX" and "D3D12_SHADER_VISIBILITY_PIXEL" 
+	// both it will has 2 param index
+	// see: https://zhuanlan.zhihu.com/p/425391931
+	int rootParameterIndexPS = -1;		
+	int rootParameterIndexVS = -1;
 };
 
 class Shader

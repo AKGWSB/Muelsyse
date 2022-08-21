@@ -63,3 +63,8 @@ CD3DX12_GPU_DESCRIPTOR_HANDLE UploadBuffer::GetGpuHandle()
 {
     return m_cbvDescriptor.gpuHandle;
 }
+
+D3D12_GPU_VIRTUAL_ADDRESS UploadBuffer::GetGpuAddress()
+{
+    return m_buffer->GetGPUVirtualAddress();
+}

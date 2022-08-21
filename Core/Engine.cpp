@@ -19,6 +19,7 @@
 #include "../Rendering/Transform.h"
 #include "../Rendering/RenderQueue.h"
 #include "../Rendering/Renderer.h"
+#include "../Rendering/MeshPass.h"
 
 #include "../Gameplay/StaticMeshComponent.h"
 #include "../Gameplay/Actor.h"
@@ -36,9 +37,15 @@ std::unique_ptr<StaticMeshComponent> m_cubeMeshComp;
 std::unique_ptr<Material> m_sphereMaterial;
 std::unique_ptr<StaticMeshComponent> m_sphereMeshComp;
 
-std::unique_ptr<Actor> m_actor;
+std::unique_ptr<Material> m_planeMaterial;
+std::unique_ptr<StaticMeshComponent> m_planeMeshComp;
+
+std::unique_ptr<Actor> m_actor0;
+std::unique_ptr<Actor> m_actor1;
 
 std::unique_ptr<DepthTexture> m_depthTex;
+
+std::unique_ptr<MeshPass> m_basePass;
 
 // ---------------------------------------------------------------------- //
 
@@ -91,13 +98,38 @@ void Engine::OnInit()
         m_sphereMeshComp->m_transform.scale = Vector3(0.25, 0.25, 0.25);
     }
 
-    // pack to an actor
+    // plane
     {
-        m_actor = std::make_unique<Actor>();
-        m_actor->transform.translate = Vector3(0, 0, 0.5);
-        m_actor->RegisterComponent("CbueMesh", m_cubeMeshComp.get());
-        m_actor->RegisterComponent("SphereMesh", m_sphereMeshComp.get());
+        m_planeMaterial = std::make_unique<Material>();
+        m_planeMaterial->SetShader(m_shader);
+        m_planeMaterial->SetTexture("mainTex0", texLoader->Find("Asset/spaceship/StarSparrow_Red.png"));
+
+        m_planeMeshComp = std::make_unique<StaticMeshComponent>();
+        m_planeMeshComp->m_material = m_planeMaterial.get();
+        m_planeMeshComp->m_mesh = meshLoader->Find("Asset/spaceship/StarSparrow01.obj");
+        m_planeMeshComp->m_transform.translate = Vector3(0, 0, 0.0);
     }
+
+    // pack comp to actor
+    {
+        m_actor0 = std::make_unique<Actor>();
+        m_actor0->transform.translate = Vector3(0, 0, 0.25);
+        m_actor0->RegisterComponent("CbueMesh", m_cubeMeshComp.get());
+        m_actor0->RegisterComponent("SphereMesh", m_sphereMeshComp.get());
+
+        m_actor1 = std::make_unique<Actor>();
+        m_actor1->transform.translate = Vector3(0, -0.35, 0.0);
+        m_actor1->RegisterComponent("MeshComp", m_planeMeshComp.get());
+    }
+
+    m_basePass = std::make_unique<MeshPass>();
+    m_basePass->renderTargets.push_back(GraphicContex::GetInstance()->GetCurrentBackBuffer());
+    m_basePass->depthTex = m_depthTex.get();
+
+    Camera* mainCam = Camera::GetMain();
+    mainCam->aspect = float(Win32App::m_width) / float(Win32App::m_height);
+    mainCam->trnasform.translate = Vector3(0.0, 1, -2);
+    mainCam->trnasform.rotation = Vector3(-30, 0, 0);
 }
 
 void Engine::OnUpdate()
@@ -111,9 +143,16 @@ void Engine::OnDestroy()
 {
     delete m_cubeMaterial.release();
     delete m_cubeMeshComp.release();
+
+    delete m_sphereMaterial.release();
     delete m_sphereMeshComp.release();
+
+    delete m_planeMaterial.release();
+    delete m_planeMeshComp.release();
+   
     delete m_rt0.release();
     delete m_depthTex.release();
+    delete m_basePass.release();
 
     ResourceLoader<Texture2D>::GetInstance()->Shutdown();
     ResourceLoader<Shader>::GetInstance()->Shutdown();
@@ -128,35 +167,21 @@ void Engine::OnRender()
 {
     // populate render queue
     {
-        m_actor->OnRender();
+        m_actor0->OnRender();
+        m_actor1->OnRender();
     }
 
     auto contex = GraphicContex::GetInstance();
     auto cmdList = contex->GetCommandList();
 
-    auto renderQueue = RenderQueue::GetInstance();
-    std::vector<Renderer*> opaqueRenderers = renderQueue->FetchAllRenderers(Opaque);
-    
     // draw
     contex->Begin();
     {
         CommandListHandle* cmd = new CommandListHandle(cmdList);
 
         // first pass
-        {
-            PsoDescriptor psoBasePass;
-            RenderTexture* screen = contex->GetCurrentBackBuffer();
-            
-            cmd->SetRenderTarget({ screen }, m_depthTex.get());
-            cmd->ClearRenderTarget({ screen }, Vector3(0.5, 0.5, 0.5));
-            cmd->ClearDepthBuffer(m_depthTex.get());
-            cmd->SetViewPort(Vector4(0, 0, Win32App::m_width, Win32App::m_height));
-
-            for (auto& rdr : opaqueRenderers)
-            {
-                cmd->DrawRenderer(rdr, psoBasePass);
-            }
-        }
+        m_basePass->renderTargets[0] = contex->GetCurrentBackBuffer();
+        m_basePass->Forward(cmd, Camera::GetMain());
 
         delete cmd;
     }
@@ -167,5 +192,6 @@ void Engine::OnRender()
 
 void Engine::Tick(double delta_time)
 {
-    m_actor->transform.rotation.y += 90.0f * delta_time;
+    m_actor0->transform.rotation.y += 190.0f * delta_time;
+    m_actor1->transform.rotation.y -= 45.0f * delta_time;
 }

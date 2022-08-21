@@ -9,6 +9,11 @@
 
 #include "../Library/stb_image.h"
 
+Texture2D::Texture2D()
+{
+
+}
+
 Texture2D::Texture2D(int w, int h, DXGI_FORMAT fmt)
 {
     CreateEmpty(w, h, fmt);

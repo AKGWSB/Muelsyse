@@ -26,6 +26,7 @@ public:
 	int width;
 	int height;
 
+	Texture2D();
 	Texture2D(std::string filepath);
 	~Texture2D();
 

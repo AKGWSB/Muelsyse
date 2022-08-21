@@ -4,15 +4,14 @@
 #include <wrl.h>
 #include <string>
 
+#include "Texture2D.h"
+
 #include "../Core/DescriptorManager.h"
 
-class DepthTexture
+class DepthTexture : public Texture2D
 {
 private:
 	Descriptor m_dsvDescriptor;
-	Descriptor m_srvDescriptor;
-	ComPtr<ID3D12Resource> m_buffer;
-	DXGI_FORMAT m_format;
 
 public:
 	std::string name;

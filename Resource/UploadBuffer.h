@@ -27,6 +27,7 @@ public:
 	void Upload();
 
 	CD3DX12_GPU_DESCRIPTOR_HANDLE GetGpuHandle();
+	D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress();
 };
 
 

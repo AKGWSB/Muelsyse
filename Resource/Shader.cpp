@@ -56,6 +56,9 @@ void Shader::LoadFromFile(std::string filepath)
 void Shader::CreateRootSignature()
 {
     auto shaderByteCodes = { m_vertexShaderByteCode, m_pixelShaderByteCode };
+    bool isPixelShader = false;
+
+    std::vector<CD3DX12_ROOT_PARAMETER> rootParameters;
 
     // shader reflection, both vs and ps
     for (auto& shaderByteCode : shaderByteCodes)
@@ -89,6 +92,14 @@ void Shader::CreateRootSignature()
                 // record bind point
                 m_textureBindInfoMap[resourceName].bindRegister = bindRegister;
                 m_textureBindInfoMap[resourceName].bindRegisterSpace = bindRegisterSpace;
+                m_textureBindInfoMap[resourceName].rootParameterIndex = rootParameters.size();
+
+                CD3DX12_DESCRIPTOR_RANGE srvTable;
+                srvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, bindRegister, bindRegisterSpace);
+
+                CD3DX12_ROOT_PARAMETER rootParam;
+                rootParam.InitAsDescriptorTable(1, &srvTable, D3D12_SHADER_VISIBILITY_ALL);
+                rootParameters.push_back(rootParam);
             }
 
             // cbuffer
@@ -97,6 +108,19 @@ void Shader::CreateRootSignature()
                 // record bind point
                 m_cbufferBindInfoMap[resourceName].bindRegister = bindRegister;
                 m_cbufferBindInfoMap[resourceName].bindRegisterSpace = bindRegisterSpace;
+                if (isPixelShader)
+                {
+                    m_cbufferBindInfoMap[resourceName].rootParameterIndexPS = rootParameters.size();
+                }
+                else
+                {
+                    m_cbufferBindInfoMap[resourceName].rootParameterIndexVS = rootParameters.size();
+                }
+
+                CD3DX12_ROOT_PARAMETER rootParam;
+                D3D12_SHADER_VISIBILITY vis = isPixelShader ? D3D12_SHADER_VISIBILITY_PIXEL : D3D12_SHADER_VISIBILITY_VERTEX;
+                rootParam.InitAsConstantBufferView(bindRegister, bindRegisterSpace, vis);
+                rootParameters.push_back(rootParam);
 
                 // record cbuffer memory layout
                 auto cbuffer = reflection->GetConstantBufferByName(resourceName);
@@ -120,8 +144,14 @@ void Shader::CreateRootSignature()
                 }
             }
         }
+
+        isPixelShader = true;
     }
 
+    GraphicContex* contex = GraphicContex::GetInstance();
+    ID3D12Device* device = contex->GetDevice();
+
+    /*
     int paramNum = m_cbufferBindInfoMap.size() + m_textureBindInfoMap.size();
     int i = 0;
     std::vector<CD3DX12_DESCRIPTOR_RANGE> ranges(paramNum);
@@ -149,9 +179,6 @@ void Shader::CreateRootSignature()
         i++;
     }
 
-    GraphicContex* contex = GraphicContex::GetInstance();
-    ID3D12Device* device = contex->GetDevice();
-
     // setup root parameter
     // ranges[i] is a descriptor table with length=1
     // range[i] bind to root parameter[i]
@@ -160,6 +187,7 @@ void Shader::CreateRootSignature()
     {
         rootParameters[i].InitAsDescriptorTable(1, &ranges[i]);
     }
+    */
 
     // default sampler
     D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -214,7 +242,16 @@ void Shader::Activate(ID3D12GraphicsCommandList* cmdList)
         if (info.cbuffer == NULL) continue;
         info.cbuffer->Upload();     // copy from cpu to gpu
 
-        cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndex, info.cbuffer->GetGpuHandle());
+        if (info.rootParameterIndexVS >= 0)
+        {
+            //cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndexVS, info.cbuffer->GetGpuHandle());
+            cmdList->SetGraphicsRootConstantBufferView(info.rootParameterIndexVS, info.cbuffer->GetGpuAddress());
+        }
+        if (info.rootParameterIndexPS >= 0)
+        {
+            //cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndexPS, info.cbuffer->GetGpuHandle());
+            cmdList->SetGraphicsRootConstantBufferView(info.rootParameterIndexPS, info.cbuffer->GetGpuAddress());
+        }
     }
 
     for (auto& p : m_textureBindInfoMap)
@@ -223,7 +260,10 @@ void Shader::Activate(ID3D12GraphicsCommandList* cmdList)
         auto& info = p.second;
         if (info.texture == NULL) continue;
 
-        cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndex, info.texture->GetSrvGpuHandle());
+        if (info.rootParameterIndex >= 0)
+        {
+            cmdList->SetGraphicsRootDescriptorTable(info.rootParameterIndex, info.texture->GetSrvGpuHandle());
+        }
     }
 }
 

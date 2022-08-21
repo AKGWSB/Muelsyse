@@ -4,6 +4,8 @@
 #include <wrl.h>
 #include <string>
 
+#include "Texture2D.h"
+
 #include "../Core/DescriptorManager.h"
 #include "../Core/GraphicContex.h"
 
@@ -11,13 +13,10 @@ using Microsoft::WRL::ComPtr;
 
 class GraphicContex;
 
-class RenderTexture
+class RenderTexture : public Texture2D
 {
 private:
 	Descriptor m_rtvDescriptor;
-	Descriptor m_srvDescriptor;
-	ComPtr<ID3D12Resource> m_buffer;
-	DXGI_FORMAT m_format;
 
 public:
 	friend class GraphicContex;
