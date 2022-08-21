@@ -19,7 +19,7 @@ public:
 	Actor* GetOwner() { return m_hostActor; };
 	virtual void OnStart() {};
 	virtual void OnTick(double delta_time) {};
-	virtual void OnRender(ID3D12GraphicsCommandList* cmdList) {};
+	virtual void OnRender() {};
 	virtual void OnDestroy() {};
 };
 

@@ -56,8 +56,23 @@ void CommandListHandle::SetViewPort(Vector4 rect)
 	m_cmdList->RSSetScissorRects(1, &m_scissorRect);
 }
 
-void CommandListHandle::RenderActor(Actor* actor)
+void CommandListHandle::DrawRenderer(Renderer* renderer, const PsoDescriptor& psoDescPrePass)
 {
-	actor->OnRender(m_cmdList);
+	// combine "pre pass" and "pre material" information
+	PsoDescriptor psoDesc = psoDescPrePass;
+	psoDesc.blendMode = renderer->material->GetBlendMode();
+	psoDesc.shaderRef = renderer->material->GetShader()->name;
+
+	// find and set pso
+	PsoCache* psoCache = PsoCache::GetInstance();
+	ID3D12PipelineState* m_pipelineState = psoCache->Find(psoDesc);
+	m_cmdList->SetPipelineState(m_pipelineState);
+	
+	// draw single mesh
+	renderer->material->SetCbuffer("cbPreObject", renderer->m_cbPreObject.get());
+	renderer->material->SetMatrix("cbPreObject", "modelMatrix", renderer->transMat);
+	renderer->material->Activate(m_cmdList);
+	renderer->mesh->Draw(m_cmdList);
 }
+
 

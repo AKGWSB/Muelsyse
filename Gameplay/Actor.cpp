@@ -55,11 +55,11 @@ void Actor::OnTick(double delta_time)
 	}
 }
 
-void Actor::OnRender(ID3D12GraphicsCommandList* cmdList)
+void Actor::OnRender()
 {
 	for (auto& p : m_components)
 	{
-		p.second->OnRender(cmdList);
+		p.second->OnRender();
 	}
 }
 

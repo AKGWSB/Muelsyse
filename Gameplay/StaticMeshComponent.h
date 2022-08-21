@@ -4,15 +4,17 @@
 
 #include "MetaComponent.h"
 
-#include "../Rendering/Transform.h"
 #include "../Resource/UploadBuffer.h"
 #include "../Resource/Mesh.h"
 #include "../Resource/Material.h"
 
+#include "../Rendering/Transform.h"
+#include "../Rendering/Renderer.h"
+
 class StaticMeshComponent : public MetaComponent
 {
 private:
-	std::unique_ptr<UploadBuffer> m_cbPreObject;
+	std::unique_ptr<Renderer> m_renderer;
 
 public:
 	Transform m_transform;
@@ -24,7 +26,7 @@ public:
 
 	void OnStart();
 	void OnTick(double delta_time);
-	void OnRender(ID3D12GraphicsCommandList* cmdList);
+	void OnRender();
 	void OnDestroy();
 };
 

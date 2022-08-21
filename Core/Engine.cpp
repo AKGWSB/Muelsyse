@@ -14,9 +14,11 @@
 #include "../Resource/DepthTexture.h"
 #include "../Resource/Material.h"
 #include "../Resource/ResourceLoader.hpp"
+#include "../Resource/PsoCache.h"
 
 #include "../Rendering/Transform.h"
-#include "../Rendering/PsoCache.h"
+#include "../Rendering/RenderQueue.h"
+#include "../Rendering/Renderer.h"
 
 #include "../Gameplay/StaticMeshComponent.h"
 #include "../Gameplay/Actor.h"
@@ -124,24 +126,25 @@ void Engine::OnDestroy()
 
 void Engine::OnRender()
 {
+    // populate render queue
+    {
+        m_actor->OnRender();
+    }
+
     auto contex = GraphicContex::GetInstance();
     auto cmdList = contex->GetCommandList();
+
+    auto renderQueue = RenderQueue::GetInstance();
+    std::vector<Renderer*> opaqueRenderers = renderQueue->FetchAllRenderers(Opaque);
     
+    // draw
     contex->Begin();
-
     {
-        
-        PsoDescriptor psoDesc;
-        psoDesc.shaderRef = "Shaders/test.hlsl";
-
-        auto psoCache = PsoCache::GetInstance();
-        ID3D12PipelineState* m_pipelineState = psoCache->Find(psoDesc);
-        cmdList->SetPipelineState(m_pipelineState);
-
         CommandListHandle* cmd = new CommandListHandle(cmdList);
 
         // first pass
         {
+            PsoDescriptor psoBasePass;
             RenderTexture* screen = contex->GetCurrentBackBuffer();
             
             cmd->SetRenderTarget({ screen }, m_depthTex.get());
@@ -149,12 +152,14 @@ void Engine::OnRender()
             cmd->ClearDepthBuffer(m_depthTex.get());
             cmd->SetViewPort(Vector4(0, 0, Win32App::m_width, Win32App::m_height));
 
-            cmd->RenderActor(m_actor.get());
+            for (auto& rdr : opaqueRenderers)
+            {
+                cmd->DrawRenderer(rdr, psoBasePass);
+            }
         }
 
         delete cmd;
     }
-    
     contex->End();
 }
 

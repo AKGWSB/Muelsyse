@@ -8,9 +8,13 @@
 #include "../Resource/RenderTexture.h"
 #include "../Resource/DepthTexture.h"
 
+#include "../Rendering/Renderer.h"
+
 #include "../Library/DirectXTK/SimpleMath.h"
 
 using namespace DirectX::SimpleMath;
+
+class Renderer;
 
 class CommandListHandle
 {
@@ -25,6 +29,7 @@ public:
 	void ClearRenderTarget(std::vector<RenderTexture*> renderTargets, Vector3 clearColor);
 	void ClearDepthBuffer(DepthTexture* depthTex);
 	void SetViewPort(Vector4 rect);
-	void RenderActor(Actor* actor);
+
+	void DrawRenderer(Renderer* renderer, const PsoDescriptor& psoDescPrePass);
 };
 

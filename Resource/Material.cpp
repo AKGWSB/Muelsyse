@@ -60,3 +60,13 @@ void Material::SetFloat4(std::string bufferName, std::string varName, Vector4 sr
 {
 	m_shader->SetFloat4(bufferName, varName, src);
 }
+
+Shader* Material::GetShader()
+{
+	return m_shader;
+}
+
+EBlendMode Material::GetBlendMode()
+{
+	return m_blendMode;
+}
