@@ -20,6 +20,7 @@
 #include "../Rendering/RenderQueue.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/MeshPass.h"
+#include "../Rendering/ScreenPass.h"
 
 #include "../Gameplay/StaticMeshComponent.h"
 #include "../Gameplay/Actor.h"
@@ -46,6 +47,7 @@ std::unique_ptr<Actor> m_actor1;
 std::unique_ptr<DepthTexture> m_depthTex;
 
 std::unique_ptr<MeshPass> m_basePass;
+std::unique_ptr<ScreenPass> m_blitPass;
 
 // ---------------------------------------------------------------------- //
 
@@ -123,8 +125,15 @@ void Engine::OnInit()
     }
 
     m_basePass = std::make_unique<MeshPass>();
-    m_basePass->renderTargets.push_back(GraphicContex::GetInstance()->GetCurrentBackBuffer());
+    m_basePass->renderTargets.push_back(m_rt0.get());
     m_basePass->depthTex = m_depthTex.get();
+
+    m_blitPass = std::make_unique<ScreenPass>();
+    m_blitPass->shader = ResourceLoader<Shader>::GetInstance()->Find("Shaders/blit_test.hlsl");
+    m_blitPass->renderTargets.push_back(GraphicContex::GetInstance()->GetCurrentBackBuffer());
+    m_blitPass->texturesInputPrePass["mainTex0"] = m_rt0.get();
+    m_blitPass->texturesInputPrePass["mainTex1"] = m_depthTex.get();
+    m_blitPass->depthTex = NULL;
 
     Camera* mainCam = Camera::GetMain();
     mainCam->aspect = float(Win32App::m_width) / float(Win32App::m_height);
@@ -180,8 +189,12 @@ void Engine::OnRender()
         CommandListHandle* cmd = new CommandListHandle(cmdList);
 
         // first pass
-        m_basePass->renderTargets[0] = contex->GetCurrentBackBuffer();
+        m_basePass->renderTargets[0] = m_rt0.get();
         m_basePass->Forward(cmd, Camera::GetMain());
+
+        // blit pass
+        m_blitPass->renderTargets[0] = contex->GetCurrentBackBuffer();
+        m_blitPass->Forward(cmd);
 
         delete cmd;
     }

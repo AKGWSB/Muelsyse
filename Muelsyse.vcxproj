@@ -42,6 +42,7 @@
     <ClCompile Include="Rendering\MeshPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RenderQueue.cpp" />
+    <ClCompile Include="Rendering\ScreenPass.cpp" />
     <ClCompile Include="Rendering\Transform.cpp" />
     <ClCompile Include="Resource\DepthTexture.cpp" />
     <ClCompile Include="Resource\Material.cpp" />
@@ -84,6 +85,7 @@
     <ClInclude Include="Rendering\MeshPass.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RenderQueue.h" />
+    <ClInclude Include="Rendering\ScreenPass.h" />
     <ClInclude Include="Rendering\Transform.h" />
     <ClInclude Include="Resource\DepthTexture.h" />
     <ClInclude Include="Resource\Material.h" />
