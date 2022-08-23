@@ -36,6 +36,7 @@ void ScreenPass::Forward(CommandListHandle* cmd)
 	cmd->SetViewPort(Vector4(0, 0, w, h));
 
 	// draw quad
+	m_material->SetShader(shader);
 	m_renderer->material->SetCbuffer("cbPrePass", m_cbPrePass.get());
 
 	// pass textures

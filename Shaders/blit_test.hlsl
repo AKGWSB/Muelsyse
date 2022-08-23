@@ -61,9 +61,9 @@ float4 PSMain(PSInput input) : SV_TARGET
     //color.rg = input.texcoord;
     color.rgb += PointSample(mainTex0, input.texcoord);
 
-    if (input.texcoord.x < 0.25 && input.texcoord.y < 0.25)
+    if (input.texcoord.x < 0.33 && input.texcoord.y < 0.33)
     {
-        color.rgb = PointSample(mainTex1, input.texcoord * 4.0);
+        color.rgb = PointSample(mainTex1, input.texcoord * 3.0);
     }
 
     return color;

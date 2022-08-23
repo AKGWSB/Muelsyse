@@ -59,6 +59,7 @@ void Shader::CreateRootSignature()
     bool isPixelShader = false;
 
     std::vector<CD3DX12_ROOT_PARAMETER> rootParameters;
+    std::vector<CD3DX12_DESCRIPTOR_RANGE> srvRanges;
 
     // shader reflection, both vs and ps
     for (auto& shaderByteCode : shaderByteCodes)
@@ -92,14 +93,16 @@ void Shader::CreateRootSignature()
                 // record bind point
                 m_textureBindInfoMap[resourceName].bindRegister = bindRegister;
                 m_textureBindInfoMap[resourceName].bindRegisterSpace = bindRegisterSpace;
-                m_textureBindInfoMap[resourceName].rootParameterIndex = rootParameters.size();
+                //m_textureBindInfoMap[resourceName].rootParameterIndex = rootParameters.size();
 
-                CD3DX12_DESCRIPTOR_RANGE srvTable;
-                srvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, bindRegister, bindRegisterSpace);
+                /*
+                int bk = srvRanges.size();
+                srvRanges.push_back(CD3DX12_DESCRIPTOR_RANGE());    // problem here, but why?
+                srvRanges[bk].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, bindRegister, bindRegisterSpace);
 
                 CD3DX12_ROOT_PARAMETER rootParam;
-                rootParam.InitAsDescriptorTable(1, &srvTable, D3D12_SHADER_VISIBILITY_ALL);
-                rootParameters.push_back(rootParam);
+                rootParam.InitAsDescriptorTable(1, &srvRanges[bk]);
+                rootParameters.push_back(rootParam);*/
             }
 
             // cbuffer
@@ -146,6 +149,22 @@ void Shader::CreateRootSignature()
         }
 
         isPixelShader = true;
+    }
+
+    int i = 0;
+    srvRanges.resize(m_textureBindInfoMap.size());
+    for (auto& p : m_textureBindInfoMap)
+    {
+        TextureBindDesc& info = p.second;
+        info.rootParameterIndex = rootParameters.size();
+
+        srvRanges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, info.bindRegister, info.bindRegisterSpace);
+
+        CD3DX12_ROOT_PARAMETER rootParam;
+        rootParam.InitAsDescriptorTable(1, &srvRanges[i]);
+        rootParameters.push_back(rootParam);
+
+        i++;
     }
 
     GraphicContex* contex = GraphicContex::GetInstance();

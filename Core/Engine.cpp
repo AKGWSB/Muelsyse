@@ -31,7 +31,6 @@ using Microsoft::WRL::ComPtr;
 
 std::unique_ptr<RenderTexture> m_rt0;
 
-Shader* m_shader;
 std::unique_ptr<Material> m_cubeMaterial;
 std::unique_ptr<StaticMeshComponent> m_cubeMeshComp;
 
@@ -72,12 +71,10 @@ void Engine::OnInit()
     m_rt0 = std::make_unique<RenderTexture>(Win32App::m_width, Win32App::m_height, DXGI_FORMAT_R8G8B8A8_UNORM);
     m_depthTex = std::make_unique<DepthTexture>(Win32App::m_width, Win32App::m_height);
 
-    m_shader = shaderLoader->Find("Shaders/test.hlsl");
-
     // cube
     {
         m_cubeMaterial = std::make_unique<Material>();
-        m_cubeMaterial->SetShader(m_shader);
+        m_cubeMaterial->SetShader(shaderLoader->Find("Shaders/test.hlsl"));
         m_cubeMaterial->SetTexture("mainTex0", texLoader->Find("Asset/test2.jpg"));
 
         m_cubeMeshComp = std::make_unique<StaticMeshComponent>();
@@ -90,7 +87,7 @@ void Engine::OnInit()
     // sphere
     {
         m_sphereMaterial = std::make_unique<Material>();
-        m_sphereMaterial->SetShader(m_shader);
+        m_sphereMaterial->SetShader(shaderLoader->Find("Shaders/test.hlsl"));
         m_sphereMaterial->SetTexture("mainTex0", texLoader->Find("Asset/test3.jpg"));
 
         m_sphereMeshComp = std::make_unique<StaticMeshComponent>();
@@ -103,7 +100,7 @@ void Engine::OnInit()
     // plane
     {
         m_planeMaterial = std::make_unique<Material>();
-        m_planeMaterial->SetShader(m_shader);
+        m_planeMaterial->SetShader(shaderLoader->Find("Shaders/test.hlsl"));
         m_planeMaterial->SetTexture("mainTex0", texLoader->Find("Asset/spaceship/StarSparrow_Red.png"));
 
         m_planeMeshComp = std::make_unique<StaticMeshComponent>();
@@ -129,7 +126,7 @@ void Engine::OnInit()
     m_basePass->depthTex = m_depthTex.get();
 
     m_blitPass = std::make_unique<ScreenPass>();
-    m_blitPass->shader = ResourceLoader<Shader>::GetInstance()->Find("Shaders/blit_test.hlsl");
+    m_blitPass->shader = shaderLoader->Find("Shaders/blit_test.hlsl");
     m_blitPass->renderTargets.push_back(GraphicContex::GetInstance()->GetCurrentBackBuffer());
     m_blitPass->texturesInputPrePass["mainTex0"] = m_rt0.get();
     m_blitPass->texturesInputPrePass["mainTex1"] = m_depthTex.get();
@@ -162,6 +159,7 @@ void Engine::OnDestroy()
     delete m_rt0.release();
     delete m_depthTex.release();
     delete m_basePass.release();
+    delete m_blitPass.release();
 
     ResourceLoader<Texture2D>::GetInstance()->Shutdown();
     ResourceLoader<Shader>::GetInstance()->Shutdown();
